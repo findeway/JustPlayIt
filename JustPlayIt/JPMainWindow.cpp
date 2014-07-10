@@ -179,6 +179,7 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
     if (m_bottomBar == NULL)
     {
         m_bottomBar = new CJPPlayerBottomBar();
+		m_bottomBar->Init(m_vlc_player,GetHWND());
         m_bottomBar->Create(GetHWND(), _T("JPPlayerBottomBar"), UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
         m_bottomBar->ShowWindow(false);
     }
@@ -282,8 +283,13 @@ LRESULT CJPMainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         }
         else if (wParam == ID_TIMER_HIDE_BOTTOM_BAR)
         {
-            ShowBottombar(false);
-            KillTimer(GetHWND(), ID_TIMER_HIDE_BOTTOM_BAR);
+			POINT curPt = {0};
+			::GetCursorPos(&curPt);
+			if(!PtInRect(&GetBottomBarRect(),curPt))
+			{
+				ShowBottombar(false);
+				KillTimer(GetHWND(), ID_TIMER_HIDE_BOTTOM_BAR);
+			}
         }
     }
     if (uMsg == WM_VIDEO_DBCLICK)
@@ -437,10 +443,10 @@ RECT CJPMainWindow::GetBottomBarRect()
     RECT rectPlayer = {0};
     GetWindowRect(GetHWND(), &rectPlayer);
     RECT bottomBarRect = {0};
-    bottomBarRect.bottom = rectPlayer.bottom - 30;
-    bottomBarRect.left = rectPlayer.left + 50;
-    bottomBarRect.right = rectPlayer.right - 50;
-    bottomBarRect.top = bottomBarRect.bottom - 30;
+    bottomBarRect.bottom = rectPlayer.bottom;
+    bottomBarRect.left = rectPlayer.left + 3;
+    bottomBarRect.right = rectPlayer.right - 3;
+	bottomBarRect.top = bottomBarRect.bottom - 70;
     return bottomBarRect;
 }
 

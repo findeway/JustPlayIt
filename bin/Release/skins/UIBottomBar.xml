@@ -1,12 +1,38 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<Window caption="0,0,0,0" size="800,60" bktrans="false">
-	<HorizontalLayout bkcolor="0xFF00FFFF" bkimage="file='icon/bottombar_bk.png'">
-		<!--<Button name="StopButtonUI" maxwidth="30" height="30" normalimage="file='Icon/stop.png'" hotimage="file='Icon/stop_on.png'" pushedimage="file='Icon/stop_press.png'"/>
-		<Button name="ForwardButtonUI" maxwidth="30" height="30" normalimage="file='Icon/forward.png'" hotimage="file='Icon/forward_on.png'" pushedimage="file='Icon/forward_press.png'"/>
-		<Button name="PlayButtonUI" maxwidth="30" height="30" normalimage="file='Icon/play.png'" hotimage="file='Icon/play_on.png'" pushedimage="file='Icon/play_press.png'"/>
-		<Button name="PauseButtonUI" visible="false" maxwidth="30" height="30" normalimage="file='Icon/pause.png'" hotimage="file='Icon/pause_on.png'" pushedimage="file='Icon/pause_press.png'" />
-		<Button name="BackwardButtonUI" maxwidth="30" height="30" normalimage="file='Icon/backward.png'" hotimage="file='Icon/backward_on.png'" pushedimage="file='Icon/backward_press.png'" />
-		<Button name="VolumnDownButtonUI" maxwidth="30" height="30" normalimage="file='Icon/volumn_down.png'" hotimage="file='Icon/volumn_down_on.png'" pushedimage="file='Icon/volumn_down_press.png'" />
-		<Button name="VolumnUpButtonUI" maxwidth="30" height="30" normalimage="file='Icon/volumn_up.png'" hotimage="file='Icon/volumn_up_on.png'" pushedimage="file='Icon/volumn_up_press.png'" /> -->
-	</HorizontalLayout>
+<Window caption="0,0,0,0" size="1000,70" bktrans="false">
+	<VerticalLayout>
+		<HorizontalLayout>
+			<Slider name="sliderProgress" width="1000" height="20"  min="0" max="100" padding="0,7,0,0" value="0" bkimage="slider\SliderBack.png" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="center" foreimage="slider\SliderFore.png" hor="true" thumbimage="file='slider\SliderBar.png' source='0,0,20,20' " thumbhotimage="file='slider\SliderBar.png' source='21,0,41,20'" thumbpushedimage="file='slider\SliderBar.png' source='42,0,62,20'" thumbsize="20,20" />
+		</HorizontalLayout>
+		<HorizontalLayout bkcolor="0xFFFFFFFF" bkimage="file='icon/bottombar_bk.png' source='0,0,320,45' fade='255'" height="50">
+			<HorizontalLayout>
+			</HorizontalLayout>
+			<HorizontalLayout>
+				<HorizontalLayout>
+					<Button name="btnStop" tooltip="停止" enabled="true" padding="0,6,0,0" width="40" height="40" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="center" normalimage="file='icon/btn_stop.png' source='0,0,40,40'" hotimage="file='icon/btn_stop.png' source='41,0,81,40'" pushedimage="file='icon/btn_stop.png' source='82,0,122,40'" disabledimage="file='icon/btn_stop.png' source='123,0,163,40'" />
+				</HorizontalLayout>
+				<HorizontalLayout>
+					<Button name="btnBackward" tooltip="上一个" width="40" height="40" padding="0,6,0,0" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="center" normalimage="file='icon/btn_previous.png' source='0,0,40,40'" hotimage="file='icon/btn_previous.png' source='41,0,81,40'" pushedimage="file='icon/btn_previous.png' source='82,0,122,40'" />
+				</HorizontalLayout>
+				<HorizontalLayout>
+					<Button name="btnPlay" tooltip="播放" visible="false" width="48" height="48" padding="0,1,0,0" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="center" normalimage="file='icon/btn_play.png' source='0,0,48,50'" hotimage="file='icon/btn_play.png' source='49,0,97,48'" pushedimage="file='icon/btn_play.png' source='98,0,146,48'" />
+					<Button name="btnPause" tooltip="暂停" width="48" padding="0,1,0,0" height="48" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="center" normalimage="file='icon/btn_pause.png' source='0,0,48,50'" hotimage="file='icon/btn_pause.png' source='49,0,97,48'" pushedimage="file='icon/btn_pause.png' source='98,0,146,48'" />
+				</HorizontalLayout>
+				<HorizontalLayout>
+					<Button name="btnForward" tooltip="下一个" width="40" height="40" padding="0,6,0,0" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="center" normalimage="file='icon/btn_next.png' source='0,0,40,40'" hotimage="file='icon/btn_next.png' source='41,0,81,40'" pushedimage="file='icon/btn_next.png' source='82,0,122,40'" />
+				</HorizontalLayout>
+				<HorizontalLayout width="101">
+					<Button name="btnVolume" tooltip="静音" width="16" height="16" padding="0,20,0,0" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="center" normalimage="file='icon/btn_volume.png' source='0,0,16,16'" hotimage="file='icon/btn_volume.png' source='17,0,33,16'" pushedimage="file='icon/btn_volume.png' source='34,0,50,16'" />
+					<Button name="btnVolumeZero" tooltip="取消静音" visible="false" padding="0,20,0,0" width="16" height="16" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="center" normalimage="file='icon/btn_volume_zero.png' source='0,0,16,16'" hotimage="file='icon/btn_volume_zero.png' source='17,0,33,16'" pushedimage="file='icon/btn_volume_zero.png' source='34,0,50,16'" />
+					<Slider name="sliderVol" width="85" height="20"  min="0" max="100" padding="0,18,0,0" value="60" bkimage="slider\SliderBackVolume.png" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" align="center" foreimage="slider\SliderForeVolume.png" hor="true" thumbimage="file='slider\SliderBar.png' source='0,0,20,20' " thumbhotimage="file='slider\SliderBar.png' source='21,0,41,20'" thumbpushedimage="file='slider\SliderBar.png' source='42,0,62,20'" thumbsize="20,20" />
+				</HorizontalLayout>
+				<HorizontalLayout>
+					<Button name="btnTopMost" tooltip="置顶" enable="true" text="TOP" width="40" height="30" padding="0,11,0,0" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" />
+					<Button name="btnNoTopMost" tooltip="取消置顶" text="NOTOP" visible="false" padding="0,11,0,0" width="40" height="30" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" />
+				</HorizontalLayout>
+			</HorizontalLayout>
+			<HorizontalLayout>
+			</HorizontalLayout>
+		</HorizontalLayout>
+	</VerticalLayout>
 </Window>
