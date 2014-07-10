@@ -1,0 +1,12 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<Window caption="0,0,0,0" size="800,60" bktrans="false">
+	<HorizontalLayout bkcolor="0xFF00FFFF" bkimage="file='icon/bottombar_bk.png'">
+		<!--<Button name="StopButtonUI" maxwidth="30" height="30" normalimage="file='Icon/stop.png'" hotimage="file='Icon/stop_on.png'" pushedimage="file='Icon/stop_press.png'"/>
+		<Button name="ForwardButtonUI" maxwidth="30" height="30" normalimage="file='Icon/forward.png'" hotimage="file='Icon/forward_on.png'" pushedimage="file='Icon/forward_press.png'"/>
+		<Button name="PlayButtonUI" maxwidth="30" height="30" normalimage="file='Icon/play.png'" hotimage="file='Icon/play_on.png'" pushedimage="file='Icon/play_press.png'"/>
+		<Button name="PauseButtonUI" visible="false" maxwidth="30" height="30" normalimage="file='Icon/pause.png'" hotimage="file='Icon/pause_on.png'" pushedimage="file='Icon/pause_press.png'" />
+		<Button name="BackwardButtonUI" maxwidth="30" height="30" normalimage="file='Icon/backward.png'" hotimage="file='Icon/backward_on.png'" pushedimage="file='Icon/backward_press.png'" />
+		<Button name="VolumnDownButtonUI" maxwidth="30" height="30" normalimage="file='Icon/volumn_down.png'" hotimage="file='Icon/volumn_down_on.png'" pushedimage="file='Icon/volumn_down_press.png'" />
+		<Button name="VolumnUpButtonUI" maxwidth="30" height="30" normalimage="file='Icon/volumn_up.png'" hotimage="file='Icon/volumn_up_on.png'" pushedimage="file='Icon/volumn_up_press.png'" /> -->
+	</HorizontalLayout>
+</Window>
