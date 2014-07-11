@@ -18,10 +18,19 @@ RECT rcDefault = {0, 0, 1000, 600};
 
 LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
 {
+	POINT ptScreen = {0};
+	::GetCursorPos(&ptScreen);
+	HWND hTopWnd = ::WindowFromPoint(ptScreen);
+	TCHAR szClassName[MAX_PATH] = {0};
+	::GetClassName(hTopWnd,szClassName,MAX_PATH);
+	if(wcscmp(szClassName,JUSTPLAYIT_WINDOW_NAME) != 0 && wcscmp(szClassName,JUSTPLAYIT_BOTTOMBAR_NAME) != 0)
+	{
+		return CallNextHookEx(g_Hook, nCode, wParam, lParam);
+	}
     MSLLHOOKSTRUCT* pHookStruct = (MSLLHOOKSTRUCT*)lParam;
     if (!pHookStruct)
     {
-        CallNextHookEx(g_Hook, nCode, wParam, lParam);
+        return CallNextHookEx(g_Hook, nCode, wParam, lParam);
     }
     POINT pt = pHookStruct->pt;
 

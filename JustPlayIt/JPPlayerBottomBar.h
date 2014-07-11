@@ -12,7 +12,7 @@ public:
 	//duilib²¿·Ö
 	LPCTSTR GetWindowClassName() const
 	{
-		return L"JPBottomBar";
+		return JUSTPLAYIT_BOTTOMBAR_NAME;
 	}
 	UINT GetClassStyle() const
 	{
