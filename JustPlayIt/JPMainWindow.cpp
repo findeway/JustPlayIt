@@ -9,7 +9,7 @@
 #define WM_VIDEO_DBCLICK			(WM_USER+500)
 #define ID_TIMER_HOOK_VLC			(5002)
 #define ID_TIMER_VIDEO_DBCLICK		(5003)
-#define ID_TIMER_HIDE_BOTTOM_BAR	(5004)
+#define ID_TIMER_HIDE_BAR			(5004)
 #define DURATION_TIMER_HOOK_VLC	2000
 
 HHOOK g_Hook = NULL;
@@ -23,7 +23,7 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
 	HWND hTopWnd = ::WindowFromPoint(ptScreen);
 	TCHAR szClassName[MAX_PATH] = {0};
 	::GetClassName(hTopWnd,szClassName,MAX_PATH);
-	if(wcscmp(szClassName,JUSTPLAYIT_WINDOW_NAME) != 0 && wcscmp(szClassName,JUSTPLAYIT_BOTTOMBAR_NAME) != 0)
+	if(wcscmp(szClassName,JUSTPLAYIT_WINDOW_NAME) != 0 && wcscmp(szClassName,JUSTPLAYIT_BOTTOMBAR_NAME) != 0 && wcscmp(szClassName,JUSTPLAYIT_TOPBAR_NAME) != 0)
 	{
 		return CallNextHookEx(g_Hook, nCode, wParam, lParam);
 	}
@@ -36,16 +36,16 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
 
     if (wParam == WM_LBUTTONDOWN)
     {
-        HWND hWnd = CJPMainWindow::Instance().GetHWND();
+        HWND hWnd = CJPMainWindow::Instance()->GetHWND();
         if (IsWindow(hWnd) && IsWindowVisible(hWnd) && IsWindowEnabled(hWnd))
         {
             RECT mainRect = {0};
             GetWindowRect(hWnd, &mainRect);
             if (PtInRect(&mainRect, pt))
             {
-                CJPMainWindow::Instance().SetDoubleClick();
+                CJPMainWindow::Instance()->SetDoubleClick();
                 SetTimer(hWnd, ID_TIMER_VIDEO_DBCLICK, 200, NULL);
-                if (CJPMainWindow::Instance().IsDoubleClick())
+                if (CJPMainWindow::Instance()->IsDoubleClick())
                 {
                     ::PostMessage(hWnd, WM_VIDEO_DBCLICK, 0, MAKELPARAM(pt.x, pt.y));
                 }
@@ -54,14 +54,15 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
     }
     else if (wParam == WM_MOUSEMOVE)
     {
-        HWND hWnd = CJPMainWindow::Instance().GetHWND();
+        HWND hWnd = CJPMainWindow::Instance()->GetHWND();
         if (IsWindow(hWnd) && IsWindowVisible(hWnd) && IsWindowEnabled(hWnd))
         {
             RECT mainRect = {0};
             GetWindowRect(hWnd, &mainRect);
             if (PtInRect(&mainRect, pt))
             {
-                CJPMainWindow::Instance().ShowBottombar(true);
+                CJPMainWindow::Instance()->ShowBottombar(true);
+				CJPMainWindow::Instance()->ShowTopBar(true);
             }
         }
     }
@@ -98,6 +99,7 @@ CJPMainWindow::CJPMainWindow(void)
     m_vlc_media = NULL;
     m_vlc_log = NULL;
     m_bottomBar = NULL;
+	m_topBar = NULL;
     m_nDoubleClick = 0;
     m_bFullScreen = false;
     m_lastRect = rcDefault;
@@ -107,7 +109,6 @@ CJPMainWindow::CJPMainWindow(void)
 
 CJPMainWindow::~CJPMainWindow(void)
 {
-    UnInitPlayer();
 }
 
 void CJPMainWindow::Notify(DuiLib::TNotifyUI& msg)
@@ -188,16 +189,28 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
     if (m_bottomBar == NULL)
     {
         m_bottomBar = new CJPPlayerBottomBar();
-		m_bottomBar->Init(m_vlc_player,GetHWND());
-        m_bottomBar->Create(GetHWND(), _T("JPPlayerBottomBar"), UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
+        m_bottomBar->Create(GetHWND(), JUSTPLAYIT_BOTTOMBAR_NAME, UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
         m_bottomBar->ShowWindow(false);
+		m_bottomBar->Init(m_vlc_player,GetHWND());
     }
+	//´´½¨topbar
+	if(m_topBar == NULL)
+	{
+		m_topBar = new CJPPlayerTopBar();
+		m_topBar->Create(GetHWND(),JUSTPLAYIT_TOPBAR_NAME, UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
+		m_topBar->ShowWindow(false);
+		m_topBar->Init(m_vlc_player,GetHWND());
+	}
     SetupVlcHook();
     return true;
 }
 
 bool CJPMainWindow::UnInitPlayer()
 {
+	m_bottomBar->Close();
+	m_bottomBar = NULL;
+	m_topBar->Close();
+	m_topBar = NULL;
     UnHookVlc();
     if (m_vlc_player != NULL)
     {
@@ -224,19 +237,23 @@ void CJPMainWindow::Play(const wchar_t* uri, EMediaType mediaType)
     switch (mediaType)
     {
         case EMediaType_Url:
-            PlayOnLineVideo(uri);
+            PlayNetVideo(uri);
             break;
         case EMediaType_Local:
             PlayLocalVideo(uri);
             break;
+		case EMediaType_HLS:
+			PlayHLSStream(uri);
+			break;
         default:
             PlayLocalVideo(uri);
             break;
     }
     ShowBottombar(false);
+	ShowTopBar(false);
 }
 
-void CJPMainWindow::PlayOnLineVideo(const wchar_t* uri)
+void CJPMainWindow::PlayNetVideo(const wchar_t* uri)
 {
     if (m_vlc_instance)
     {
@@ -253,6 +270,10 @@ void CJPMainWindow::PlayOnLineVideo(const wchar_t* uri)
         libvlc_media_track_info_t* media_tracks = NULL;
         int trackCount = libvlc_media_get_tracks_info(m_vlc_media, &media_tracks);
         libvlc_media_player_set_media(m_vlc_player, m_vlc_media);
+		if(m_topBar)
+		{
+			m_topBar->SetTitle(libvlc_media_get_meta(m_vlc_media,libvlc_meta_Title));
+		}
         libvlc_media_player_play(m_vlc_player);
     }
 }
@@ -269,6 +290,10 @@ void CJPMainWindow::PlayLocalVideo(const wchar_t* uri)
             libvlc_media_track_info_t* media_tracks = NULL;
             int trackCount = libvlc_media_get_tracks_info(m_vlc_media, &media_tracks);
             libvlc_media_player_set_media(m_vlc_player, m_vlc_media);
+			if(m_topBar)
+			{
+				m_topBar->SetTitle(libvlc_media_get_meta(m_vlc_media,libvlc_meta_Title));
+			}
             libvlc_media_player_play(m_vlc_player);
         }
     }
@@ -290,14 +315,15 @@ LRESULT CJPMainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
             m_nDoubleClick = 0;
             KillTimer(GetHWND(), ID_TIMER_VIDEO_DBCLICK);
         }
-        else if (wParam == ID_TIMER_HIDE_BOTTOM_BAR)
+        else if (wParam == ID_TIMER_HIDE_BAR)
         {
 			POINT curPt = {0};
 			::GetCursorPos(&curPt);
 			if(!PtInRect(&GetBottomBarRect(),curPt))
 			{
 				ShowBottombar(false);
-				KillTimer(GetHWND(), ID_TIMER_HIDE_BOTTOM_BAR);
+				ShowTopBar(false);
+				KillTimer(GetHWND(), ID_TIMER_HIDE_BAR);
 			}
         }
     }
@@ -314,8 +340,7 @@ LRESULT CJPMainWindow::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, b
     {
         if (wParam == VK_ESCAPE)
         {
-            Close();
-            PostQuitMessage(0);
+           QuitApplication();
         }
     }
     return __super::MessageHandler(uMsg, wParam, lParam, bHandled);
@@ -341,7 +366,7 @@ bool CJPMainWindow::ShowBottombar(bool bShow)
                 m_bottomBar->ShowWindow(bShow);
                 if (bShow)
                 {
-                    SetTimer(GetHWND(), ID_TIMER_HIDE_BOTTOM_BAR, 1000, NULL);
+                    SetTimer(GetHWND(), ID_TIMER_HIDE_BAR, 1000, NULL);
                 }
                 return true;
             }
@@ -380,8 +405,9 @@ bool CJPMainWindow::SetFullScreen(bool bFullScreen)
     m_bFullScreen = bFullScreen;
     if (bFullScreen)
     {
-        //È«ÆÁÒþ²Øbottombar
+        //È«ÆÁÒþ²Øbottombar,topbar
         ShowBottombar(false);
+		ShowTopBar(false);
         //Ë«»÷Êó±ê²Ù×÷È«ÆÁ
         RECT desktopRect = GetDesktopRect(true);
         desktopRect.bottom += 40;
@@ -480,4 +506,71 @@ LRESULT CJPMainWindow::OnNcHitTest( UINT uMsg, WPARAM wParam, LPARAM lParam, BOO
 		return HTCLIENT;
 	}
 	return __super::OnNcHitTest(uMsg,wParam,lParam,bHandled);
+}
+
+bool CJPMainWindow::ShowTopBar( bool bShow )
+{
+	HWND hWnd = GetHWND();
+	if (hWnd && IsWindow(hWnd) && IsWindowVisible(hWnd) && IsWindowEnabled(hWnd))
+	{
+		if (m_topBar != NULL)
+		{
+			if (m_topBar->GetHWND() && IsWindow(m_topBar->GetHWND()))
+			{
+				DuiLib::CDuiRect topBarRect = GetTopBarRect();
+				MoveWindow(m_topBar->GetHWND(), topBarRect.left, topBarRect.top, topBarRect.GetWidth(), topBarRect.GetHeight(), FALSE);
+				m_topBar->ShowWindow(bShow);
+				if (bShow)
+				{
+					SetTimer(GetHWND(), ID_TIMER_HIDE_BAR, 1000, NULL);
+				}
+				return true;
+			}
+		}
+	}
+	return false;
+}
+
+RECT CJPMainWindow::GetTopBarRect()
+{
+	RECT rectPlayer = {0};
+	GetWindowRect(GetHWND(), &rectPlayer);
+	RECT topBarRect = {0};
+	topBarRect.left = rectPlayer.left + 3;
+	topBarRect.right = rectPlayer.right - 3;
+	topBarRect.top = rectPlayer.top;
+	topBarRect.bottom = topBarRect.top + 30;
+	return topBarRect;
+}
+
+void CJPMainWindow::QuitApplication()
+{
+	ShowWindow(false);
+	Close();
+	PostQuitMessage(0);
+}
+
+void CJPMainWindow::PlayHLSStream( const wchar_t* uri )
+{
+	if (m_vlc_instance)
+	{
+		m_vlc_media = libvlc_media_new_location(m_vlc_instance, W2Utf8(uri).c_str());
+	}
+	else
+	{
+		return;
+	}
+	if (m_vlc_media != NULL)
+	{
+		libvlc_media_parse(m_vlc_media);
+		libvlc_time_t duration = libvlc_media_get_duration(m_vlc_media);
+		libvlc_media_player_set_media(m_vlc_player, m_vlc_media);
+		if(m_topBar)
+		{
+			m_topBar->SetTitle(libvlc_media_get_meta(m_vlc_media,libvlc_meta_Title));
+		}
+		m_hlsMetaData = CHLSMetaParser::Instance()->parseHLSStream(uri);
+		m_bottomBar->SetDuration(m_hlsMetaData.duration);
+		libvlc_media_player_play(m_vlc_player);
+	}
 }

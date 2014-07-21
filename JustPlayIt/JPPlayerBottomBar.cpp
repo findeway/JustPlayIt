@@ -3,6 +3,9 @@
 
 using namespace DuiLib;
 
+#define ID_TIMER_UPDATE_PROGRESS		(5005)
+#define DURATION_TIMER_UPDATE_PROGRESS  (1000/60)
+
 CJPPlayerBottomBar::CJPPlayerBottomBar(void)
 {
 	m_btnPlay = NULL;
@@ -17,11 +20,16 @@ CJPPlayerBottomBar::CJPPlayerBottomBar(void)
 	m_vlcplayer = NULL;
 	m_btnTopMost = NULL;
 	m_btnNoTopMost = NULL;
+	m_labelTotalTime = NULL;
+	m_labelCurTime = NULL;
+	m_nCurPos = 0;
 	m_nVolume = 50;
+	m_duration = 0;
 }
 
 CJPPlayerBottomBar::~CJPPlayerBottomBar(void)
 {
+	SetUpdateProgress(false);
 }
 
 bool CJPPlayerBottomBar::Resume()
@@ -77,8 +85,15 @@ bool CJPPlayerBottomBar::Pause()
 	return false;
 }
 
-bool CJPPlayerBottomBar::Seek( int pos )
+bool CJPPlayerBottomBar::Seek( double pos )
 {
+	if(m_vlcplayer)
+	{
+		double progress = pos/100.0;
+		m_nCurPos = pos;
+		libvlc_media_player_set_position(m_vlcplayer,progress);
+		return true;
+	}
 	return false;
 }
 
@@ -109,11 +124,7 @@ void CJPPlayerBottomBar::Notify( DuiLib::TNotifyUI& msg )
 {
 	if(msg.sType == DUI_MSGTYPE_CLICK)
 	{
-		if(msg.pSender->GetName() == UI_NAME_SLIDER_VOL)
-		{
-
-		}
-		else if(msg.pSender->GetName() == UI_NAME_BUTTON_PAUSE)
+		if(msg.pSender->GetName() == UI_NAME_BUTTON_PAUSE)
 		{
 			Pause();
 		}
@@ -150,6 +161,23 @@ void CJPPlayerBottomBar::Notify( DuiLib::TNotifyUI& msg )
 			SetTopMost(false);
 		}
 	}
+	else if(msg.sType == DUI_MSGTYPE_VALUECHANGED)
+	{
+		if(msg.pSender->GetName() == UI_NAME_SLIDER_PROGRESS)
+		{
+			if(m_slideProgress)
+			{
+				Seek(m_slideProgress->GetValue());
+			}
+		}
+		else if(msg.pSender->GetName() == UI_NAME_SLIDER_VOL)
+		{
+			if(m_slideVolumn)
+			{
+				SetVolumn(m_slideVolumn->GetValue());
+			}
+		}
+	}
 	return __super::Notify(msg);
 }
 
@@ -165,6 +193,20 @@ DuiLib::CDuiString CJPPlayerBottomBar::GetSkinFolder()
 
 LRESULT CJPPlayerBottomBar::HandleMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
+	if(uMsg == WM_TIMER)
+	{
+		if(wParam == ID_TIMER_UPDATE_PROGRESS)
+		{
+			if(m_vlcplayer)
+			{
+				libvlc_state_t playerState = libvlc_media_player_get_state(m_vlcplayer);
+				if(playerState == libvlc_Playing)
+				{
+					UpdateProgress(true);
+				}
+			}
+		}
+	}
 	return __super::HandleMessage(uMsg,wParam,lParam);
 }
 
@@ -215,6 +257,14 @@ LRESULT CJPPlayerBottomBar::OnCreate( UINT uMsg, WPARAM wParam, LPARAM lParam, B
 	{
 		m_btnNoTopMost = static_cast<CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_NOTOPMOST));
 	}
+	if(!m_labelCurTime)
+	{
+		m_labelCurTime = static_cast<CLabelUI*>(m_PaintManager.FindControl(UI_NAME_LABEL_CURTIME));
+	}
+	if(!m_labelTotalTime)
+	{
+		m_labelTotalTime = static_cast<CLabelUI*>(m_PaintManager.FindControl(UI_NAME_LABEL_TOTALTIME));
+	}
 	return result;
 }
 
@@ -222,6 +272,7 @@ void CJPPlayerBottomBar::Init( libvlc_media_player_t* player, HWND hParent )
 {
 	m_vlcplayer = player;
 	m_hParent = hParent;
+	SetUpdateProgress(true);
 }
 
 bool CJPPlayerBottomBar::SetMute( bool bMute )
@@ -285,4 +336,85 @@ bool CJPPlayerBottomBar::SetTopMost( bool bTopMost )
 		}
 	}
 	return bTopMost;
+}
+
+bool CJPPlayerBottomBar::SetProgress( double num )
+{
+	if(m_vlcplayer)
+	{
+		m_nCurPos = num;
+		double progress = num/100.0;
+		libvlc_media_player_set_position(m_vlcplayer,progress);
+		if(m_slideProgress)
+		{
+			m_slideProgress->SetValue(num);
+		}
+	}
+	return true;
+}
+
+void CJPPlayerBottomBar::UpdateProgress( bool bUpdate )
+{
+	if(bUpdate)
+	{
+		m_nCurPos = libvlc_media_player_get_position(m_vlcplayer)*100.0;
+		if(m_slideProgress)
+		{
+			m_slideProgress->SetValue(m_nCurPos);
+		}
+		SetCurTime(int(m_duration*m_nCurPos/100));
+	}
+}
+
+void CJPPlayerBottomBar::SetUpdateProgress( bool bUpdate )
+{
+	if(GetHWND() && IsWindow(GetHWND()))
+	{
+		if(bUpdate)
+		{
+			SetTimer(GetHWND(),ID_TIMER_UPDATE_PROGRESS,DURATION_TIMER_UPDATE_PROGRESS,NULL);
+		}
+		else
+		{
+			KillTimer(GetHWND(),ID_TIMER_UPDATE_PROGRESS);
+		}
+	}
+}
+
+bool CJPPlayerBottomBar::SetDuration( int duration )
+{
+	m_duration = duration;
+	if(m_labelTotalTime)
+	{
+		m_labelTotalTime->SetText(FormatTime(duration).c_str());
+		return true;
+	}
+	return false;
+}
+
+bool CJPPlayerBottomBar::SetCurTime( int time )
+{
+	if(m_labelCurTime)
+	{
+		m_labelCurTime->SetText(FormatTime(time).c_str());
+		return true;
+	}
+	return false;
+}
+
+std::wstring CJPPlayerBottomBar::FormatTime( int time )
+{
+	DuiLib::CDuiString strTime;
+	int hour = time/(60*60);
+	int minute = time/60;
+	int second = time%60;
+	if(hour > 0)
+	{
+		strTime.Format(_T("%02d:%02d:%02d"),hour,minute,second);
+	}
+	else
+	{
+		strTime.Format(_T("%02d:%02d"),minute,second);
+	}
+	return LPCTSTR(strTime);
 }

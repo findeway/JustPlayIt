@@ -27,10 +27,10 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 		pfnChangeWindowMessageFilter(SPI_SETANIMATION, MSGFLT_ADD);
 	}
 	
-	CCommandLineProcessor::Instance().Process(lpstrCmdLine);
+	CCommandLineProcessor::Instance()->Process(lpstrCmdLine);
 	DuiLib::CPaintManagerUI::SetInstance(hInstance);
 
-	CJPMainWindow::Instance().Play(L"e:\\downloadvide\\ÎÞ¼äµÀ3.mp4");
+	CJPMainWindow::Instance()->Play(L"http://pl.youku.com/playlist/m3u8?vid=184451263&type=hd2&ts=1404889662&keyframe=0&ep=cyaUHkGFX8gG5yPcjD8bYC%2fncXYGXP8C8huAgNBkA9QtSeC4&sid=140488966203412735519&token=9187&ev=1&oip=1008511208&ctype=12",EMediaType_HLS);
 
 	DuiLib::CPaintManagerUI::MessageLoop();
 	ProcessDetach();

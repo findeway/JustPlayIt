@@ -1,6 +1,6 @@
 #pragma once
-#include "Singleton.h"
-class CCommandLineProcessor:public SohuTool::SingletonImpl<CCommandLineProcessor>
+#include "SingletonImpl.h"
+class CCommandLineProcessor:public SingletonImpl<CCommandLineProcessor>
 {
 public:
 	CCommandLineProcessor(void);

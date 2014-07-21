@@ -208,6 +208,10 @@
 				>
 			</File>
 			<File
+				RelativePath=".\JPPlayerTopBar.cpp"
+				>
+			</File>
+			<File
 				RelativePath=".\JustPlayIt.cpp"
 				>
 			</File>
@@ -246,6 +250,10 @@
 			</File>
 			<File
 				RelativePath=".\JPPlayerBottomBar.h"
+				>
+			</File>
+			<File
+				RelativePath=".\JPPlayerTopBar.h"
 				>
 			</File>
 			<File
@@ -295,6 +303,38 @@
 			</File>
 			<File
 				RelativePath="..\common\Util.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="HLSMeta"
+			>
+			<File
+				RelativePath=".\HLSMetaParser.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\HLSMetaParser.h"
+				>
+			</File>
+		</Filter>
+		<Filter
+			Name="HttpClient"
+			>
+			<File
+				RelativePath=".\AsyncHttpClient.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\AsyncHttpClient.h"
+				>
+			</File>
+			<File
+				RelativePath=".\SyncHttpClient.cpp"
+				>
+			</File>
+			<File
+				RelativePath=".\SyncHttpClient.h"
 				>
 			</File>
 		</Filter>

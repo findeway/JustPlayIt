@@ -3,17 +3,20 @@
 #include "UIlib.h"
 #include <vlc/vlc.h>
 #include "JPPlayerBottomBar.h"
-#include "Singleton.h"
+#include "JPPlayerTopBar.h"
+#include "SingletonImpl.h"
+#include "HLSMetaParser.h"
 
 enum EMediaType
 {
 	EMediaType_Local = 0,
-	EMediaType_Url
+	EMediaType_Url,
+	EMediaType_HLS
 };
 
 class CJPMainWindow:
 	public DuiLib::WindowImplBase,
-	public SohuTool::SingletonImpl<CJPMainWindow>
+	public SingletonImpl<CJPMainWindow>
 {
 public:
 	CJPMainWindow(void);
@@ -45,6 +48,7 @@ public:
 	bool SetupVlcHook();				//hook vlc windows
 	bool UnHookVlc();
 	bool ShowBottombar(bool bShow);
+	bool ShowTopBar(bool bShow);
 
 	//部分鼠标消息实现
 	bool SetDoubleClick();
@@ -56,9 +60,13 @@ public:
 	bool IsBottomBarVisible();
 	HWND GetBottomBar();
 	RECT GetBottomBarRect();
+	RECT GetTopBarRect();
+
+	void QuitApplication();
 protected:
-	void PlayOnLineVideo(const wchar_t* uri);
+	void PlayNetVideo(const wchar_t* uri);
 	void PlayLocalVideo(const wchar_t* uri);
+	void PlayHLSStream(const wchar_t* uri);
 
 	RECT GetDesktopRect(bool bWorkArea);
 	virtual LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -69,8 +77,10 @@ private:
 	libvlc_log_t*					m_vlc_log;
 
 	CJPPlayerBottomBar*				m_bottomBar;
+	CJPPlayerTopBar*				m_topBar;
 	bool							m_bFullScreen;
 	LONG_PTR						m_oldStyle;
 	int								m_nDoubleClick;		//0为清空状态，2表示双击
 	RECT							m_lastRect;
+	HLSMetaData						m_hlsMetaData;
 };
