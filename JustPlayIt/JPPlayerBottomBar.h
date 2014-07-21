@@ -80,5 +80,5 @@ private:
 	int								m_nVolume;		//0-100
 	double							m_nCurPos;		//0-100
 	HWND							m_hParent;
-	__int64							m_duration;
+	int								m_duration;
 };

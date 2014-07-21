@@ -479,8 +479,8 @@ RECT CJPMainWindow::GetBottomBarRect()
     GetWindowRect(GetHWND(), &rectPlayer);
     RECT bottomBarRect = {0};
     bottomBarRect.bottom = rectPlayer.bottom;
-    bottomBarRect.left = rectPlayer.left + 3;
-    bottomBarRect.right = rectPlayer.right - 3;
+    bottomBarRect.left = rectPlayer.left;
+    bottomBarRect.right = rectPlayer.right;
 	bottomBarRect.top = bottomBarRect.bottom - 70;
     return bottomBarRect;
 }
@@ -536,10 +536,10 @@ RECT CJPMainWindow::GetTopBarRect()
 	RECT rectPlayer = {0};
 	GetWindowRect(GetHWND(), &rectPlayer);
 	RECT topBarRect = {0};
-	topBarRect.left = rectPlayer.left + 3;
-	topBarRect.right = rectPlayer.right - 3;
+	topBarRect.left = rectPlayer.left;
+	topBarRect.right = rectPlayer.right;
 	topBarRect.top = rectPlayer.top;
-	topBarRect.bottom = topBarRect.top + 30;
+	topBarRect.bottom = topBarRect.top + 25;
 	return topBarRect;
 }
 

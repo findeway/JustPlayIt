@@ -4,7 +4,7 @@
 using namespace DuiLib;
 
 #define ID_TIMER_UPDATE_PROGRESS		(5005)
-#define DURATION_TIMER_UPDATE_PROGRESS  (1000/60)
+#define DURATION_TIMER_UPDATE_PROGRESS  (1000)
 
 CJPPlayerBottomBar::CJPPlayerBottomBar(void)
 {
@@ -34,6 +34,7 @@ CJPPlayerBottomBar::~CJPPlayerBottomBar(void)
 
 bool CJPPlayerBottomBar::Resume()
 {
+	SetUpdateProgress(true);
 	if(m_vlcplayer)
 	{
 		libvlc_media_player_set_pause(m_vlcplayer,0);
@@ -52,6 +53,7 @@ bool CJPPlayerBottomBar::Resume()
 
 bool CJPPlayerBottomBar::Stop()
 {
+	SetUpdateProgress(false);
 	if(m_vlcplayer)
 	{
 		libvlc_media_player_stop(m_vlcplayer);
@@ -69,6 +71,7 @@ bool CJPPlayerBottomBar::Stop()
 
 bool CJPPlayerBottomBar::Pause()
 {
+	SetUpdateProgress(false);
 	if(m_vlcplayer)
 	{
 		libvlc_media_player_set_pause(m_vlcplayer,1);
@@ -362,7 +365,14 @@ void CJPPlayerBottomBar::UpdateProgress( bool bUpdate )
 		{
 			m_slideProgress->SetValue(m_nCurPos);
 		}
-		SetCurTime(int(m_duration*m_nCurPos/100));
+		if(m_duration <= 0)
+		{
+			libvlc_time_t time = libvlc_media_player_get_length(m_vlcplayer);
+			SetDuration(libvlc_media_player_get_length(m_vlcplayer)/1000.0);
+			m_duration = time/1000;
+		}
+		//调用vlc的libvlc_media_player_get_time针对hls会返回0
+		SetCurTime(int(m_duration*libvlc_media_player_get_position(m_vlcplayer)));
 	}
 }
 
@@ -405,9 +415,9 @@ bool CJPPlayerBottomBar::SetCurTime( int time )
 std::wstring CJPPlayerBottomBar::FormatTime( int time )
 {
 	DuiLib::CDuiString strTime;
-	int hour = time/(60*60);
-	int minute = time/60;
-	int second = time%60;
+	int second = time % 60;
+	int minute = (time / 60) % 60;
+	int hour = (time / (60 * 60)) % 60;
 	if(hour > 0)
 	{
 		strTime.Format(_T("%02d:%02d:%02d"),hour,minute,second);
