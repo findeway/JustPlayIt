@@ -181,7 +181,7 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
     Create(NULL, _T("JustPlayIt"), UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
     CenterWindow();
     ShowWindow(true, true);
-    SetShadowVisible(false);
+    SetShadowVisible(true);
 
     m_vlc_player = libvlc_media_player_new(m_vlc_instance);
     if (m_vlc_player == NULL)
@@ -610,4 +610,24 @@ void CJPMainWindow::AdjustRatio()
 	GetClientRect(GetHWND(),&rect);
 	strRatio.Format("%d:%d",rect.GetWidth(),rect.GetHeight());
 	libvlc_video_set_aspect_ratio(m_vlc_player,LPCSTR(strRatio));
+}
+
+bool CJPMainWindow::SetTopMost( bool bTopMost )
+{
+	if(GetHWND() && IsWindow(GetHWND()))
+	{
+		if(bTopMost)
+		{
+			::SetWindowPos(GetHWND(),HWND_TOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOREPOSITION|SWP_NOREDRAW|SWP_NOMOVE);
+			::SetWindowPos(m_bottomBar->GetHWND(),GetHWND(),0,0,0,0,SWP_NOSIZE|SWP_NOACTIVATE|SWP_NOREPOSITION|SWP_NOMOVE);
+			::SetWindowPos(m_topBar->GetHWND(),GetHWND(),0,0,0,0,SWP_NOSIZE|SWP_NOACTIVATE|SWP_NOREPOSITION|SWP_NOMOVE);
+		}
+		else
+		{
+			::SetWindowPos(GetHWND(),HWND_NOTOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOACTIVATE|SWP_NOREPOSITION|SWP_NOMOVE);
+			::SetWindowPos(m_bottomBar->GetHWND(),HWND_NOTOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOACTIVATE|SWP_NOREPOSITION|SWP_NOREDRAW|SWP_NOMOVE);
+			::SetWindowPos(m_topBar->GetHWND(),HWND_NOTOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOACTIVATE|SWP_NOREPOSITION|SWP_NOREDRAW|SWP_NOMOVE);
+		}
+	}
+	return bTopMost;
 }

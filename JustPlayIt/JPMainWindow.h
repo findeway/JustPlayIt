@@ -64,7 +64,7 @@ public:
 	RECT GetTopBarRect();
 
 	void QuitApplication();
-	void AdjustRatio();
+	bool SetTopMost(bool bTopMost);
 protected:
 	void PlayNetVideo(const wchar_t* uri);
 	void PlayLocalVideo(const wchar_t* uri);
@@ -74,7 +74,7 @@ protected:
 	virtual LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	void OnPlayBegin(const wchar_t* uri);
-	
+	void AdjustRatio();	
 private:
 	libvlc_instance_t*				m_vlc_instance;
 	libvlc_media_player_t*			m_vlc_player;

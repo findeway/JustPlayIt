@@ -314,36 +314,29 @@ bool CJPPlayerBottomBar::SetMute( bool bMute )
 
 bool CJPPlayerBottomBar::SetTopMost( bool bTopMost )
 {
-	if(m_hParent && IsWindow(m_hParent))
+	if(bTopMost)
 	{
-		if(bTopMost)
+		if(m_btnTopMost)
 		{
-			::SetWindowPos(m_hParent,HWND_TOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOREPOSITION|SWP_NOREDRAW|SWP_NOMOVE);
-			::SetWindowPos(GetHWND(),m_hParent,0,0,0,0,SWP_NOSIZE|SWP_NOACTIVATE|SWP_NOREPOSITION|SWP_NOMOVE);
-			if(m_btnTopMost)
-			{
-				m_btnTopMost->SetVisible(false);
-			}
-			if(m_btnNoTopMost)
-			{
-				m_btnNoTopMost->SetVisible(true);
-			}
+			m_btnTopMost->SetVisible(false);
 		}
-		else
+		if(m_btnNoTopMost)
 		{
-			::SetWindowPos(GetHWND(),HWND_NOTOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOACTIVATE|SWP_NOREPOSITION|SWP_NOMOVE);
-			::SetWindowPos(m_hParent,HWND_NOTOPMOST,0,0,0,0,SWP_NOSIZE|SWP_NOACTIVATE|SWP_NOREPOSITION|SWP_NOREDRAW|SWP_NOMOVE);
-			if(m_btnTopMost)
-			{
-				m_btnTopMost->SetVisible(true);
-			}
-			if(m_btnNoTopMost)
-			{
-				m_btnNoTopMost->SetVisible(false);
-			}
+			m_btnNoTopMost->SetVisible(true);
 		}
 	}
-	return bTopMost;
+	else
+	{
+		if(m_btnTopMost)
+		{
+			m_btnTopMost->SetVisible(true);
+		}
+		if(m_btnNoTopMost)
+		{
+			m_btnNoTopMost->SetVisible(false);
+		}
+	}
+	return CJPMainWindow::Instance()->SetTopMost(bTopMost);
 }
 
 bool CJPPlayerBottomBar::SetProgress( double num )
