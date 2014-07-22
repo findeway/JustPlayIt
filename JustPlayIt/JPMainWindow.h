@@ -9,6 +9,7 @@
 
 enum EMediaType
 {
+	EMediaType_Unknown = -1,
 	EMediaType_Local = 0,
 	EMediaType_Url,
 	EMediaType_HLS
@@ -63,6 +64,7 @@ public:
 	RECT GetTopBarRect();
 
 	void QuitApplication();
+	void AdjustRatio();
 protected:
 	void PlayNetVideo(const wchar_t* uri);
 	void PlayLocalVideo(const wchar_t* uri);
@@ -70,6 +72,9 @@ protected:
 
 	RECT GetDesktopRect(bool bWorkArea);
 	virtual LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+
+	void OnPlayBegin(const wchar_t* uri);
+	
 private:
 	libvlc_instance_t*				m_vlc_instance;
 	libvlc_media_player_t*			m_vlc_player;
@@ -83,4 +88,6 @@ private:
 	int								m_nDoubleClick;		//0为清空状态，2表示双击
 	RECT							m_lastRect;
 	HLSMetaData						m_hlsMetaData;
+	EMediaType						m_sourceType;
+	std::wstring					m_uri;
 };

@@ -1,12 +1,12 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <Window caption="0,0,0,0" size="1000,70" bktrans="true">
 	<VerticalLayout>
-		<HorizontalLayout bkcolor="#F0000000" childpadding="0,0,0,0">
+		<HorizontalLayout bkcolor="#FF000000" childpadding="0,0,0,0">
 			<HorizontalLayout width="60">
 				<Label name="labelCurTime" text="00:00" padding="0,6,0,0" textcolor="#FFFFFFFF" height="15" align="center" />
 			</HorizontalLayout>
 			<HorizontalLayout>
-				<Slider name="sliderProgress" height="15"  min="0" max="100" padding="0,6,0,0" value="0" bkimage="slider\SliderBack.png" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" foreimage="slider\SliderFore.png" hor="true" thumbimage="file='slider\SliderPlayThumb.png' source='0,0,20,20' " thumbhotimage="file='slider\SliderPlayThumb.png' source='21,0,41,20'" thumbpushedimage="file='slider\SliderPlayThumb.png' source='42,0,62,20'" thumbsize="20,20" />
+				<Slider name="sliderProgress" height="15"  min="0" max="100" padding="0,6,0,0" value="0" bkimage="slider\SliderBack.png" textcolor="#FF000000" disabledtextcolor="#FFA7A6AA" foreimage="slider\SliderFore.png" hor="true" thumbimage="file='slider\SliderPlayThumb.png' source='0,0,20,20' " thumbhotimage="file='slider\SliderPlayThumb.png' source='21,0,41,20'" thumbpushedimage="file='slider\SliderPlayThumb.png' source='42,0,62,20'" />
 			</HorizontalLayout>
 			<HorizontalLayout width="60">
 				<Label name="labelTotalTime" text="00:00" padding="0,6,0,0" textcolor="#FFFFFFFF" height="15" align="center" />

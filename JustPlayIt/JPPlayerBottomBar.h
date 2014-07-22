@@ -49,6 +49,8 @@ protected:
 	void SetUpdateProgress(bool bUpdate);
 	void UpdateProgress(bool bUpdate);
 
+	void UpdateHoverTime();
+	
 	//格式化时间,以秒为单位
 	std::wstring FormatTime(int time);
 

@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes" ?>
+<Window caption="0,0,0,0" size="1000,25" bktrans="true">
+	<VerticalLayout>
+		<HorizontalLayout bkcolor="0xFF0D0D0D" height="25">
+			<HorizontalLayout width="90">
+			</HorizontalLayout>
+			<HorizontalLayout>
+				<Button name="btnVideoName" height="25" textcolor="#FFFFFFFF" align="center" enable="true" />
+			</HorizontalLayout>
+			<HorizontalLayout width="90" childpadding="10">
+				<Button name="btnMin" text="min" enable="true" width="40" height="25" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" />
+				<Button name="btnClose" text="close" enable="true" width="40" height="25" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" />
+			</HorizontalLayout>
+		</HorizontalLayout>
+	</VerticalLayout>
+</Window>

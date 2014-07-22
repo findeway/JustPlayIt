@@ -10,8 +10,12 @@
 #define ID_TIMER_HOOK_VLC			(5002)
 #define ID_TIMER_VIDEO_DBCLICK		(5003)
 #define ID_TIMER_HIDE_BAR			(5004)
-#define DURATION_TIMER_HOOK_VLC	2000
+#define ID_TIMER_SHOW_BAR			(5005)
 
+#define DURATION_TIMER_SHOW_BAR		200
+#define DURATION_TIMER_HIDE_BAR		2000
+#define DURATION_TIMER_HOOK_VLC		2000
+#define ALPHA_PLAYER_BAR			150
 HHOOK g_Hook = NULL;
 
 RECT rcDefault = {0, 0, 1000, 600};
@@ -61,8 +65,8 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
             GetWindowRect(hWnd, &mainRect);
             if (PtInRect(&mainRect, pt))
             {
-                CJPMainWindow::Instance()->ShowBottombar(true);
-				CJPMainWindow::Instance()->ShowTopBar(true);
+				//需要延迟显示，否则windowposchange时显示playerbar会导致卡顿
+				::SetTimer(hWnd,ID_TIMER_SHOW_BAR,DURATION_TIMER_SHOW_BAR,NULL);
             }
         }
     }
@@ -104,6 +108,7 @@ CJPMainWindow::CJPMainWindow(void)
     m_bFullScreen = false;
     m_lastRect = rcDefault;
 	m_oldStyle = 0;
+	m_sourceType = EMediaType_Unknown;
 	InitPlayer();
 }
 
@@ -189,16 +194,18 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
     if (m_bottomBar == NULL)
     {
         m_bottomBar = new CJPPlayerBottomBar();
-        m_bottomBar->Create(GetHWND(), JUSTPLAYIT_BOTTOMBAR_NAME, UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
-        m_bottomBar->ShowWindow(false);
+        m_bottomBar->Create(GetHWND(), JUSTPLAYIT_BOTTOMBAR_NAME, UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_LAYERED);
+        m_bottomBar->ShowWindow(false,false);
+		SetLayeredWindowAttributes(m_bottomBar->GetHWND(),NULL,ALPHA_PLAYER_BAR,LWA_ALPHA);
 		m_bottomBar->Init(m_vlc_player,GetHWND());
     }
 	//创建topbar
 	if(m_topBar == NULL)
 	{
 		m_topBar = new CJPPlayerTopBar();
-		m_topBar->Create(GetHWND(),JUSTPLAYIT_TOPBAR_NAME, UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
-		m_topBar->ShowWindow(false);
+		m_topBar->Create(GetHWND(),JUSTPLAYIT_TOPBAR_NAME, UI_WNDSTYLE_FRAME& (~WS_VISIBLE), WS_EX_LAYERED);
+		m_topBar->ShowWindow(false,false);
+		SetLayeredWindowAttributes(m_topBar->GetHWND(),NULL,ALPHA_PLAYER_BAR,LWA_ALPHA);
 		m_topBar->Init(m_vlc_player,GetHWND());
 	}
     SetupVlcHook();
@@ -234,6 +241,8 @@ bool CJPMainWindow::UnInitPlayer()
 
 void CJPMainWindow::Play(const wchar_t* uri, EMediaType mediaType)
 {
+	m_uri = uri;
+	m_sourceType = mediaType;
     switch (mediaType)
     {
         case EMediaType_Url:
@@ -251,6 +260,7 @@ void CJPMainWindow::Play(const wchar_t* uri, EMediaType mediaType)
     }
     ShowBottombar(false);
 	ShowTopBar(false);
+	OnPlayBegin(uri);
 }
 
 void CJPMainWindow::PlayNetVideo(const wchar_t* uri)
@@ -266,14 +276,7 @@ void CJPMainWindow::PlayNetVideo(const wchar_t* uri)
     if (m_vlc_media != NULL)
     {
         libvlc_media_parse(m_vlc_media);
-        libvlc_time_t duration = libvlc_media_get_duration(m_vlc_media);
-        libvlc_media_track_info_t* media_tracks = NULL;
-        int trackCount = libvlc_media_get_tracks_info(m_vlc_media, &media_tracks);
         libvlc_media_player_set_media(m_vlc_player, m_vlc_media);
-		if(m_topBar)
-		{
-			m_topBar->SetTitle(libvlc_media_get_meta(m_vlc_media,libvlc_meta_Title));
-		}
         libvlc_media_player_play(m_vlc_player);
     }
 }
@@ -286,14 +289,7 @@ void CJPMainWindow::PlayLocalVideo(const wchar_t* uri)
         {
             m_vlc_media = libvlc_media_new_path(m_vlc_instance, W2Utf8(uri).c_str());
             libvlc_media_parse(m_vlc_media);
-            libvlc_time_t duration = libvlc_media_get_duration(m_vlc_media);
-            libvlc_media_track_info_t* media_tracks = NULL;
-            int trackCount = libvlc_media_get_tracks_info(m_vlc_media, &media_tracks);
             libvlc_media_player_set_media(m_vlc_player, m_vlc_media);
-			if(m_topBar)
-			{
-				m_topBar->SetTitle(libvlc_media_get_meta(m_vlc_media,libvlc_meta_Title));
-			}
             libvlc_media_player_play(m_vlc_player);
         }
     }
@@ -319,18 +315,36 @@ LRESULT CJPMainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
         {
 			POINT curPt = {0};
 			::GetCursorPos(&curPt);
-			if(!PtInRect(&GetBottomBarRect(),curPt))
+			if(!PtInRect(&GetBottomBarRect(),curPt) && !PtInRect(&GetTopBarRect(),curPt))
 			{
 				ShowBottombar(false);
 				ShowTopBar(false);
+				::BringWindowToTop(GetHWND());			//修复一个bug,playerbar隐藏时会导致播放窗口的z-序发生变化
 				KillTimer(GetHWND(), ID_TIMER_HIDE_BAR);
 			}
         }
+		else if(wParam == ID_TIMER_SHOW_BAR)
+		{
+			ShowBottombar(true);
+			ShowTopBar(true);
+			KillTimer(GetHWND(), ID_TIMER_SHOW_BAR);
+		}
     }
     if (uMsg == WM_VIDEO_DBCLICK)
     {
         SetFullScreen(!m_bFullScreen);
     }
+	else if(uMsg == WM_WINDOWPOSCHANGED)
+	{
+		POINT pt = {0};
+		::GetCursorPos(&pt);
+		if (!PtInRect(&GetBottomBarRect(), pt) && !PtInRect(&GetBottomBarRect(), pt))
+		{
+			//移动或改变大小时先隐藏playerbar
+			ShowBottombar(false);
+			ShowTopBar(false);
+		}
+	}
     return __super::HandleMessage(uMsg, wParam, lParam);
 }
 
@@ -362,11 +376,11 @@ bool CJPMainWindow::ShowBottombar(bool bShow)
             if (m_bottomBar->GetHWND() && IsWindow(m_bottomBar->GetHWND()))
             {
                 DuiLib::CDuiRect bottomBarRect = GetBottomBarRect();
-                MoveWindow(m_bottomBar->GetHWND(), bottomBarRect.left, bottomBarRect.top, bottomBarRect.GetWidth(), bottomBarRect.GetHeight(), FALSE);
-                m_bottomBar->ShowWindow(bShow);
-                if (bShow)
+				::SetWindowPos(m_bottomBar->GetHWND(), NULL, bottomBarRect.left, bottomBarRect.top, bottomBarRect.GetWidth(), bottomBarRect.GetHeight(), SWP_NOZORDER|SWP_NOREDRAW);
+				m_bottomBar->ShowWindow(bShow);
+				if (bShow)
                 {
-                    SetTimer(GetHWND(), ID_TIMER_HIDE_BAR, 1000, NULL);
+					::SetTimer(GetHWND(), ID_TIMER_HIDE_BAR, DURATION_TIMER_HIDE_BAR, NULL);
                 }
                 return true;
             }
@@ -378,10 +392,6 @@ bool CJPMainWindow::ShowBottombar(bool bShow)
 bool CJPMainWindow::IsDoubleClick()
 {
     bool bDBClick = (m_nDoubleClick >= 2);
-    if (bDBClick)
-    {
-//        m_nDoubleClick = 0;
-    }
     return bDBClick;
 }
 
@@ -478,9 +488,9 @@ RECT CJPMainWindow::GetBottomBarRect()
     RECT rectPlayer = {0};
     GetWindowRect(GetHWND(), &rectPlayer);
     RECT bottomBarRect = {0};
-    bottomBarRect.bottom = rectPlayer.bottom;
+    bottomBarRect.bottom = rectPlayer.bottom - 1;
     bottomBarRect.left = rectPlayer.left;
-    bottomBarRect.right = rectPlayer.right;
+    bottomBarRect.right = rectPlayer.right - 1;
 	bottomBarRect.top = bottomBarRect.bottom - 70;
     return bottomBarRect;
 }
@@ -518,11 +528,11 @@ bool CJPMainWindow::ShowTopBar( bool bShow )
 			if (m_topBar->GetHWND() && IsWindow(m_topBar->GetHWND()))
 			{
 				DuiLib::CDuiRect topBarRect = GetTopBarRect();
-				MoveWindow(m_topBar->GetHWND(), topBarRect.left, topBarRect.top, topBarRect.GetWidth(), topBarRect.GetHeight(), FALSE);
+				::SetWindowPos(m_topBar->GetHWND(), NULL, topBarRect.left, topBarRect.top, topBarRect.GetWidth(), topBarRect.GetHeight(), SWP_NOZORDER|SWP_NOREDRAW);
 				m_topBar->ShowWindow(bShow);
 				if (bShow)
 				{
-					SetTimer(GetHWND(), ID_TIMER_HIDE_BAR, 1000, NULL);
+					::SetTimer(GetHWND(), ID_TIMER_HIDE_BAR, DURATION_TIMER_HIDE_BAR, NULL);
 				}
 				return true;
 			}
@@ -563,14 +573,41 @@ void CJPMainWindow::PlayHLSStream( const wchar_t* uri )
 	if (m_vlc_media != NULL)
 	{
 		libvlc_media_parse(m_vlc_media);
-		libvlc_time_t duration = libvlc_media_get_duration(m_vlc_media);
 		libvlc_media_player_set_media(m_vlc_player, m_vlc_media);
-		if(m_topBar)
-		{
-			m_topBar->SetTitle(libvlc_media_get_meta(m_vlc_media,libvlc_meta_Title));
-		}
-		m_hlsMetaData = CHLSMetaParser::Instance()->parseHLSStream(uri);
-		m_bottomBar->SetDuration(m_hlsMetaData.duration);
 		libvlc_media_player_play(m_vlc_player);
 	}
+}
+
+void CJPMainWindow::OnPlayBegin(const wchar_t* uri)
+{
+	//显示标题
+	if(m_topBar)
+	{
+		m_topBar->SetTitle(libvlc_media_get_meta(m_vlc_media,libvlc_meta_Title));
+	}
+	//解析m3u8时长信息
+	if(m_sourceType == EMediaType_HLS)
+	{
+		m_hlsMetaData = CHLSMetaParser::Instance()->parseHLSStream(uri);
+		m_bottomBar->SetDuration(m_hlsMetaData.duration);
+	}
+	//自适应宽度
+	int height = libvlc_video_get_height(m_vlc_player);
+	int width = libvlc_video_get_width(m_vlc_player);
+	if(height != 0 && width != 0)
+	{
+		//目前只有本地播放能够获取到正常的宽高信息
+		::SetWindowPos(GetHWND(),NULL,0,0,width,height,SWP_NOZORDER|SWP_NOMOVE);
+		CenterWindow();
+	}
+	AdjustRatio();
+}
+
+void CJPMainWindow::AdjustRatio()
+{
+	CStringA strRatio;
+	DuiLib::CDuiRect rect;
+	GetClientRect(GetHWND(),&rect);
+	strRatio.Format("%d:%d",rect.GetWidth(),rect.GetHeight());
+	libvlc_video_set_aspect_ratio(m_vlc_player,LPCSTR(strRatio));
 }

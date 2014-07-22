@@ -1,10 +1,11 @@
 #include "StdAfx.h"
 #include "JPPlayerBottomBar.h"
+#include "JPMainWindow.h"
 
 using namespace DuiLib;
 
 #define ID_TIMER_UPDATE_PROGRESS		(5005)
-#define DURATION_TIMER_UPDATE_PROGRESS  (1000)
+#define DURATION_TIMER_UPDATE_PROGRESS  (1000.0/60.0)
 
 CJPPlayerBottomBar::CJPPlayerBottomBar(void)
 {
@@ -210,6 +211,10 @@ LRESULT CJPPlayerBottomBar::HandleMessage( UINT uMsg, WPARAM wParam, LPARAM lPar
 			}
 		}
 	}
+	if(uMsg == WM_MOUSEMOVE)
+	{
+		UpdateHoverTime();
+	}
 	return __super::HandleMessage(uMsg,wParam,lParam);
 }
 
@@ -360,7 +365,7 @@ void CJPPlayerBottomBar::UpdateProgress( bool bUpdate )
 {
 	if(bUpdate)
 	{
-		m_nCurPos = libvlc_media_player_get_position(m_vlcplayer)*100.0;
+		m_nCurPos = libvlc_media_player_get_position(m_vlcplayer) * 100.0;
 		if(m_slideProgress)
 		{
 			m_slideProgress->SetValue(m_nCurPos);
@@ -368,11 +373,20 @@ void CJPPlayerBottomBar::UpdateProgress( bool bUpdate )
 		if(m_duration <= 0)
 		{
 			libvlc_time_t time = libvlc_media_player_get_length(m_vlcplayer);
-			SetDuration(libvlc_media_player_get_length(m_vlcplayer)/1000.0);
+			SetDuration(libvlc_media_player_get_length(m_vlcplayer) / 1000.0);
 			m_duration = time/1000;
 		}
 		//调用vlc的libvlc_media_player_get_time针对hls会返回0
-		SetCurTime(int(m_duration*libvlc_media_player_get_position(m_vlcplayer)));
+		libvlc_time_t time = libvlc_media_player_get_time(m_vlcplayer);
+		if(time != 0)
+		{
+			SetCurTime(time/1000);
+		}
+		else
+		{
+			int time = m_duration*libvlc_media_player_get_position(m_vlcplayer);
+			SetCurTime(time);
+		}
 	}
 }
 
@@ -427,4 +441,20 @@ std::wstring CJPPlayerBottomBar::FormatTime( int time )
 		strTime.Format(_T("%02d:%02d"),minute,second);
 	}
 	return LPCTSTR(strTime);
+}
+
+void CJPPlayerBottomBar::UpdateHoverTime()
+{
+	POINT pt = {0};
+	::GetCursorPos(&pt);
+	::ScreenToClient(GetHWND(),&pt);
+	if(m_slideProgress)
+	{
+		RECT rect = m_slideProgress->GetPos();
+		if(PtInRect(&rect,pt))
+		{
+			int time = float(pt.x - rect.left)/(rect.right-rect.left) * m_duration;
+			m_slideProgress->SetToolTip(FormatTime(time).c_str());
+		}
+	}
 }
