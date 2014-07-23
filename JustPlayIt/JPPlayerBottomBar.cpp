@@ -498,3 +498,15 @@ void CJPPlayerBottomBar::SetMouseTransparent( bool bTrans )
 		::SetWindowLong(GetHWND(),GWL_EXSTYLE,GetWindowLong(GetHWND(),GWL_EXSTYLE) & (~WS_EX_TRANSPARENT));
 	}
 }
+
+LRESULT CJPPlayerBottomBar::MessageHandler( UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled )
+{
+	if (uMsg == WM_KEYDOWN)
+	{
+		if (wParam == VK_ESCAPE)
+		{
+			return 1L;
+		}
+	}
+	return __super::MessageHandler(uMsg, wParam, lParam, bHandled);
+}

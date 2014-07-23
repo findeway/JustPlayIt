@@ -148,3 +148,15 @@ void CJPPlayerTopBar::OnRestoreClick()
 		}
 	}
 }
+
+LRESULT CJPPlayerTopBar::MessageHandler( UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled )
+{
+	if (uMsg == WM_KEYDOWN)
+	{
+		if (wParam == VK_ESCAPE)
+		{
+			return 1L;
+		}
+	}
+	return __super::MessageHandler(uMsg, wParam, lParam, bHandled);
+}

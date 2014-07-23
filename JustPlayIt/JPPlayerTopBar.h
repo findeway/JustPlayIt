@@ -25,6 +25,7 @@ public:
 protected:
 	virtual LRESULT HandleMessage( UINT uMsg, WPARAM wParam, LPARAM lParam );
 	virtual LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);
 
 	void OnCloseClick();
 	void OnMinClick();

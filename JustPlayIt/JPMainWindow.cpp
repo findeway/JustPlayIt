@@ -325,7 +325,11 @@ LRESULT CJPMainWindow::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, b
     {
         if (wParam == VK_ESCAPE)
         {
-           QuitApplication();
+           if(m_bFullScreen)
+		   {
+			   SetFullScreen(false);
+		   }
+		   return 1L;
         }
     }
     return __super::MessageHandler(uMsg, wParam, lParam, bHandled);
@@ -585,7 +589,7 @@ void CJPMainWindow::OnPlayBegin(const wchar_t* uri)
 		::SetWindowPos(GetHWND(),NULL,0,0,width,height,SWP_NOZORDER|SWP_NOMOVE);
 		CenterWindow();
 	}
-	AdjustRatio();
+	//AdjustRatio();
 }
 
 void CJPMainWindow::AdjustRatio()
