@@ -91,4 +91,5 @@ private:
 	HLSMetaData						m_hlsMetaData;
 	EMediaType						m_sourceType;
 	std::wstring					m_uri;
+	bool							m_bAutoShowBar;
 };

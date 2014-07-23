@@ -1,5 +1,5 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<Window caption="0,0,0,0" size="1000,70" bktrans="true">
+<Window caption="0,0,0,0" size="1000,70" bktrans="true" sizebox="0,0,10,10" >
 	<VerticalLayout>
 		<HorizontalLayout bkcolor="#FF000000" childpadding="0,0,0,0">
 			<HorizontalLayout width="60">

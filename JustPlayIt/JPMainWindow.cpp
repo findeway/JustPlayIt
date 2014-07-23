@@ -63,10 +63,14 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
         {
             RECT mainRect = {0};
             GetWindowRect(hWnd, &mainRect);
-            if (PtInRect(&mainRect, pt))
+			if (PtInRect(&mainRect, pt))
             {
-				//需要延迟显示，否则windowposchange时显示playerbar会导致卡顿
-				::SetTimer(hWnd,ID_TIMER_SHOW_BAR,DURATION_TIMER_SHOW_BAR,NULL);
+				//只有鼠标左键不是按下状态时才显示playerbar，防止移动窗口或者改变大小时闪烁playerbar
+				if(!GetAsyncKeyState(VK_LBUTTON))
+				{
+					//需要延迟显示，否则windowposchange时显示playerbar会导致卡顿
+					::SetTimer(hWnd,ID_TIMER_SHOW_BAR,DURATION_TIMER_SHOW_BAR,NULL);
+				}
             }
         }
     }
@@ -194,7 +198,7 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
     if (m_bottomBar == NULL)
     {
         m_bottomBar = new CJPPlayerBottomBar();
-        m_bottomBar->Create(GetHWND(), JUSTPLAYIT_BOTTOMBAR_NAME, UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_LAYERED);
+        m_bottomBar->Create(NULL, JUSTPLAYIT_BOTTOMBAR_NAME, UI_WNDSTYLE_DIALOG & (~WS_VISIBLE), WS_EX_LAYERED | WS_EX_TOOLWINDOW & ~WS_EX_APPWINDOW );
         m_bottomBar->ShowWindow(false,false);
 		SetLayeredWindowAttributes(m_bottomBar->GetHWND(),NULL,ALPHA_PLAYER_BAR,LWA_ALPHA);
 		m_bottomBar->Init(m_vlc_player,GetHWND());
@@ -203,7 +207,7 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
 	if(m_topBar == NULL)
 	{
 		m_topBar = new CJPPlayerTopBar();
-		m_topBar->Create(GetHWND(),JUSTPLAYIT_TOPBAR_NAME, UI_WNDSTYLE_FRAME& (~WS_VISIBLE), WS_EX_LAYERED);
+		m_topBar->Create(NULL,JUSTPLAYIT_TOPBAR_NAME, UI_WNDSTYLE_DIALOG& (~WS_VISIBLE), WS_EX_LAYERED | WS_EX_TOOLWINDOW & ~WS_EX_APPWINDOW);
 		m_topBar->ShowWindow(false,false);
 		SetLayeredWindowAttributes(m_topBar->GetHWND(),NULL,ALPHA_PLAYER_BAR,LWA_ALPHA);
 		m_topBar->Init(m_vlc_player,GetHWND());
@@ -462,7 +466,12 @@ RECT CJPMainWindow::GetBottomBarRect()
     bottomBarRect.bottom = rectPlayer.bottom;
     bottomBarRect.left = rectPlayer.left;
     bottomBarRect.right = rectPlayer.right;
-	bottomBarRect.top = bottomBarRect.bottom - 70;
+	DuiLib::CDuiRect bottomWinRect;
+	if(m_bottomBar)
+	{
+		GetClientRect(m_bottomBar->GetHWND(),&bottomWinRect);
+	}
+	bottomBarRect.top = bottomBarRect.bottom - bottomWinRect.GetHeight();
     return bottomBarRect;
 }
 
@@ -520,7 +529,12 @@ RECT CJPMainWindow::GetTopBarRect()
 	topBarRect.left = rectPlayer.left;
 	topBarRect.right = rectPlayer.right;
 	topBarRect.top = rectPlayer.top;
-	topBarRect.bottom = topBarRect.top + 25;
+	DuiLib::CDuiRect topWinRect;
+	if(m_topBar)
+	{
+		GetClientRect(m_topBar->GetHWND(),&topWinRect);
+	}
+	topBarRect.bottom = topBarRect.top + topWinRect.GetHeight();
 	return topBarRect;
 }
 
@@ -625,7 +639,6 @@ LRESULT CJPMainWindow::OnTimer( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 		{
 			ShowBottombar(false);
 			ShowTopBar(false);
-			::BringWindowToTop(GetHWND());			//修复一个bug,playerbar隐藏时会导致播放窗口的z-序发生变化
 			KillTimer(GetHWND(), ID_TIMER_HIDE_BAR);
 		}
 	}

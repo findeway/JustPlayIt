@@ -1,17 +1,17 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<Window caption="0,0,0,0" size="1000,25" bktrans="true">
+<Window caption="0,0,0,0" size="1000,30" bktrans="true">
 	<VerticalLayout>
-		<HorizontalLayout bkcolor="0xFF0D0D0D" height="25">
+		<HorizontalLayout bkcolor="0xFF0D0D0D" height="30">
 			<HorizontalLayout width="90">
 			</HorizontalLayout>
 			<HorizontalLayout >
-				<Button name="btnVideoName" height="25" endellipsis="true" textcolor="#FFFFFFFF" align="center" enable="true" />
+				<Button name="btnVideoName" height="30" endellipsis="true" textcolor="#FFFFFFFF" align="center" enable="true" />
 			</HorizontalLayout>
-			<HorizontalLayout width="66" childpadding="10">
-				<Button name="btnMin" padding="0,5,0,6" enable="true" width="14" height="14" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" normalimage="file='icon/btn_min.png'" hotimage="file='icon/btn_min_hover.png'" pushedimage="file='icon/btn_min_press.png'" />
-				<Button name="btnMax"  padding="0,5,0,6" width="14" height="14" normalimage="file='Icon/btn_big.png'" hotimage="file='Icon/btn_big_hover.png'" pushedimage="file='Icon/btn_big_press.png'"/>
-				<Button name="btnRestore"  padding="0,5,0,6" visible="false" width="14" height="14" normalimage="file='Icon/btn_restore.png'" hotimage="file='Icon/btn_restore_hover.png'" pushedimage="file='Icon/btn_restore_press.png'" />
-				<Button name="btnClose" padding="0,6,0,7" enable="true" width="14" height="12" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" normalimage="file='icon/btn_close.png'" hotimage="file='icon/btn_close_hover.png'" pushedimage="file='icon/btn_close_press.png'" />
+			<HorizontalLayout width="80" childpadding="15">
+				<Button name="btnMin" padding="0,8,0,8" enable="true" width="14" height="14" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" normalimage="file='icon/btn_min.png'" hotimage="file='icon/btn_min_hover.png'" pushedimage="file='icon/btn_min_press.png'" />
+				<Button name="btnMax"  padding="0,8,0,8" width="14" height="14" normalimage="file='Icon/btn_big.png'" hotimage="file='Icon/btn_big_hover.png'" pushedimage="file='Icon/btn_big_press.png'"/>
+				<Button name="btnRestore"  padding="0,8,0,8" visible="false" width="14" height="14" normalimage="file='Icon/btn_restore.png'" hotimage="file='Icon/btn_restore_hover.png'" pushedimage="file='Icon/btn_restore_press.png'" />
+				<Button name="btnClose" padding="0,9,0,9" enable="true" width="14" height="12" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" normalimage="file='icon/btn_close.png'" hotimage="file='icon/btn_close_hover.png'" pushedimage="file='icon/btn_close_press.png'" />
 			</HorizontalLayout>
 		</HorizontalLayout>
 	</VerticalLayout>

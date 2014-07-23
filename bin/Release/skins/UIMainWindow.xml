@@ -1,4 +1,4 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<Window caption="0,0,0,0" size="1000,600" sizebox="0,0,5,5"  bktrans="false">
+<Window caption="0,0,0,0" size="1000,600" sizebox="0,0,10,10"  bktrans="true">
 	<VerticalLayout bkcolor="0xFF000000"></VerticalLayout>
 </Window>
