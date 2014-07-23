@@ -454,7 +454,6 @@ HWND CJPMainWindow::GetBottomBar()
 
 LRESULT CJPMainWindow::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
 {
-    UnInitPlayer();
     return __super::OnClose(uMsg, wParam, lParam, bHandled);
 }
 
@@ -540,6 +539,7 @@ RECT CJPMainWindow::GetTopBarRect()
 
 void CJPMainWindow::QuitApplication()
 {
+	UnInitPlayer();
 	ShowWindow(false);
 	Close();
 	PostQuitMessage(0);
