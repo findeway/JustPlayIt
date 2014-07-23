@@ -83,4 +83,5 @@ private:
 	double							m_nCurPos;		//0-100
 	HWND							m_hParent;
 	int								m_duration;
+	double							test_pos;
 };

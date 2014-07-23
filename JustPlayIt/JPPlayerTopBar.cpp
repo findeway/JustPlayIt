@@ -10,6 +10,8 @@ CJPPlayerTopBar::CJPPlayerTopBar(void)
 	m_btnMin = NULL;
 	m_btnClose = NULL;
 	m_btnVideoName = NULL;
+	m_btnMax = NULL;
+	m_btnRestore = NULL;
 }
 
 CJPPlayerTopBar::~CJPPlayerTopBar(void)
@@ -30,6 +32,14 @@ void CJPPlayerTopBar::Notify( DuiLib::TNotifyUI& msg )
 		}
 		else if(msg.pSender->GetName() == UI_NAME_BUTTON_VIDEONAME)
 		{
+		}
+		else if(msg.pSender->GetName() == UI_NAME_BUTTON_MAX)
+		{
+			OnMaxClick();
+		}
+		else if(msg.pSender->GetName() == UI_NAME_BUTTON_RESTORE)
+		{
+			OnRestoreClick();
 		}
 	}
 	__super::Notify(msg);
@@ -65,6 +75,14 @@ LRESULT CJPPlayerTopBar::OnCreate( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL
 	{
 		m_btnClose = static_cast<DuiLib::CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_MIN));
 	}
+	if(!m_btnMax)
+	{
+		m_btnMax = static_cast<DuiLib::CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_MAX));
+	}
+	if(!m_btnRestore)
+	{
+		m_btnRestore = static_cast<DuiLib::CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_RESTORE));
+	}
 	return result;
 }
 
@@ -96,5 +114,37 @@ void CJPPlayerTopBar::SetTitle( const char* szTitle )
 	if(m_btnVideoName)
 	{
 		m_btnVideoName->SetText(strTitle.c_str());
+	}
+}
+
+void CJPPlayerTopBar::OnMaxClick()
+{
+	if(m_hParent && ::IsWindow(m_hParent))
+	{
+		::ShowWindow(m_hParent,SW_MAXIMIZE);
+		if(m_btnRestore)
+		{
+			m_btnRestore->SetVisible(true);
+		}
+		if(m_btnMax)
+		{
+			m_btnMax->SetVisible(false);
+		}
+	}
+}
+
+void CJPPlayerTopBar::OnRestoreClick()
+{
+	if(m_hParent && ::IsWindow(m_hParent))
+	{
+		::ShowWindow(m_hParent,SW_RESTORE);
+		if(m_btnRestore)
+		{
+			m_btnRestore->SetVisible(false);
+		}
+		if(m_btnMax)
+		{
+			m_btnMax->SetVisible(true);
+		}
 	}
 }

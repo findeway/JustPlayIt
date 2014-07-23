@@ -22,3 +22,5 @@
 #define UI_NAME_BUTTON_MIN			_T("btnMin")
 #define UI_NAME_BUTTON_CLOSE		_T("btnClose")
 #define UI_NAME_BUTTON_VIDEONAME	_T("btnVideoName")
+#define UI_NAME_BUTTON_MAX			_T("btnMax")
+#define UI_NAME_BUTTON_RESTORE		_T("btnRestore")

@@ -91,11 +91,13 @@ bool CJPPlayerBottomBar::Pause()
 
 bool CJPPlayerBottomBar::Seek( double pos )
 {
+	test_pos;
 	if(m_vlcplayer)
 	{
 		double progress = pos/100.0;
 		m_nCurPos = pos;
 		libvlc_media_player_set_position(m_vlcplayer,progress);
+		UpdateProgress(true);
 		return true;
 	}
 	return false;
@@ -446,7 +448,9 @@ void CJPPlayerBottomBar::UpdateHoverTime()
 		RECT rect = m_slideProgress->GetPos();
 		if(PtInRect(&rect,pt))
 		{
-			int time = float(pt.x - rect.left)/(rect.right-rect.left) * m_duration;
+			//debug
+			test_pos = float(pt.x - rect.left)/(rect.right-rect.left);
+			int time = test_pos * m_duration;
 			m_slideProgress->SetToolTip(FormatTime(time).c_str());
 		}
 	}

@@ -28,10 +28,14 @@ protected:
 
 	void OnCloseClick();
 	void OnMinClick();
+	void OnMaxClick();
+	void OnRestoreClick();
 private:
 	libvlc_media_player_t*			m_vlcplayer;
 	HWND							m_hParent;
 	DuiLib::CButtonUI*				m_btnVideoName;
 	DuiLib::CButtonUI*				m_btnClose;
 	DuiLib::CButtonUI*				m_btnMin;
+	DuiLib::CButtonUI*				m_btnMax;
+	DuiLib::CButtonUI*				m_btnRestore;
 };
