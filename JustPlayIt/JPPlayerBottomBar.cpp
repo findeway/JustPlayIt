@@ -91,7 +91,6 @@ bool CJPPlayerBottomBar::Pause()
 
 bool CJPPlayerBottomBar::Seek( double pos )
 {
-	test_pos;
 	if(m_vlcplayer)
 	{
 		double progress = pos/100.0;
@@ -423,6 +422,11 @@ bool CJPPlayerBottomBar::SetCurTime( int time )
 
 std::wstring CJPPlayerBottomBar::FormatTime( int time )
 {
+	//防止时间出现负数
+	if(time < 0)
+	{
+		time = 0;
+	}
 	DuiLib::CDuiString strTime;
 	int second = time % 60;
 	int minute = (time / 60) % 60;
@@ -448,9 +452,10 @@ void CJPPlayerBottomBar::UpdateHoverTime()
 		RECT rect = m_slideProgress->GetPos();
 		if(PtInRect(&rect,pt))
 		{
-			//debug
-			test_pos = float(pt.x - rect.left)/(rect.right-rect.left);
-			int time = test_pos * m_duration;
+			DuiLib::CDuiRect thumbRect = m_slideProgress->GetThumbRect();
+			//保留两位小数
+			float seekPercent = int(float(pt.x - rect.left - thumbRect.GetWidth() / 2)/(rect.right-rect.left - thumbRect.GetWidth()) * 100) / 100.0;
+			int time = seekPercent * m_duration;
 			m_slideProgress->SetToolTip(FormatTime(time).c_str());
 		}
 	}
