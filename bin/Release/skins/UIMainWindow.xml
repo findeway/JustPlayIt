@@ -1,4 +1,21 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<Window caption="0,0,0,0" size="1000,600" sizebox="0,0,10,10"  bktrans="true">
-	<VerticalLayout bkcolor="0xFF000000"></VerticalLayout>
+<Window caption="0,0,0,30" size="800,600" sizebox="0,0,10,10" bktrans="false">
+	<Font name="宋体" size="13" bold="false" italic="false" />
+	<Font name="宋体" size="13" bold="true" italic="false" />
+	<VerticalLayout bkimage="file='icon/background-spotlight.jpg'" inset="30,5,30,5"  childpadding="10">
+		<HorizontalLayout>
+		</HorizontalLayout>
+		
+		<HorizontalLayout inset="10,0,10,0" height="40" childpadding="10">
+			<HorizontalLayout>
+				<RichEdit font="0" textcolor="#FF0D0D0D" align="center" text="" multiline="false" name="editUri" inset="10,10,10,10" disabledtextcolor="#FFA7A6AA" bkimage="file='Icon/textarea.png' source='0,0,452,110' corner='4,4,4,4'"/>
+			</HorizontalLayout>
+			<HorizontalLayout width="100" height="40" >
+				<Button font="1" bkimage="file='icon/open_file.png' source='0,0,100,40' corner='4,4,4,4'" name="btnOpenFile" align="center" />
+			</HorizontalLayout>
+		</HorizontalLayout>
+		
+		<HorizontalLayout>
+		</HorizontalLayout>
+	</VerticalLayout>
 </Window>

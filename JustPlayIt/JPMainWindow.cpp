@@ -2,11 +2,12 @@
 #include "JPMainWindow.h"
 #include "Util.h"
 #include <boost/bind.hpp>
+#include <atlapp.h>
+#include <atldlgs.h>
 
 #pragma comment(lib,"libvlc.lib")
 #pragma comment(lib,"libvlccore.lib")
 
-#define WM_VIDEO_DBCLICK			(WM_USER+500)
 #define ID_TIMER_HOOK_VLC			(5002)
 #define ID_TIMER_VIDEO_DBCLICK		(5003)
 #define ID_TIMER_HIDE_BAR			(5004)
@@ -113,6 +114,9 @@ CJPMainWindow::CJPMainWindow(void)
     m_lastRect = rcDefault;
 	m_oldStyle = 0;
 	m_sourceType = EMediaType_Unknown;
+	m_editUri = NULL;
+	m_btnOpenFile = NULL;
+	m_playerActive = false;
 	InitPlayer();
 }
 
@@ -122,6 +126,35 @@ CJPMainWindow::~CJPMainWindow(void)
 
 void CJPMainWindow::Notify(DuiLib::TNotifyUI& msg)
 {
+	if(msg.sType == DUI_MSGTYPE_CLICK)
+	{
+		if(msg.pSender->GetName() == UI_NAME_BUTTON_OPENFILE)
+		{
+			if(m_editUri && !m_editUri->GetText().IsEmpty())
+			{
+				OnOpenFileClick(LPCTSTR(m_editUri->GetText()));
+			}
+			else
+			{
+				WTL::CFileDialog dlg(TRUE,NULL,NULL,OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT,
+					_T("媒体类型\0*.mp4; *.3gp; *.mov; *.qt; *.3gpp; *.avi; *.asf; *.wmv; *.rm; *.rmvb; *.ram; *.flv; *.f4v; *.flc; \
+					   *.fli; *.mkv; *.mpg; *.ts; *.m2t; *.mpeg; *.m2v; *.m2p; *.m4v; *.vob;*.m2ts; *.mp3; *.ogg; *.wma; *.amr; *.wav; *.aac; *.flac; *.mp2\0")
+					   _T("QT媒体(QuickTime)(*.mp4; *.3gp; *.mov; *.qt; *.3gpp)\0*.mp4; *.3gp; *.mov; *.qt; *.3gpp\0")
+					   _T("Windows媒体(*.avi; *.asf; *.wmv)\0*.avi; *.asf; *.wmv\0")
+					   _T("Real媒体(*.rm; *.rmvb; *.ram)\0*.rm; *.rmvb; *.ram\0")
+					   _T("Flash媒体(*.flv; *.swf; *.f4v; *.flc; *.fli)\0*.flv; *.f4v; *.flc; *.fli\0")
+					   _T("Matroska媒体(*.mkv)\0*.mkv\0")
+					   _T("Mpeg媒体(*.mpg; *.ts; *.m2t; *.mpeg; *.m2v; *.m2p; *.m4v;)\0(*.mpg; *.ts; *.m2t; *.mpeg; *.m2v; *.m2p; *.m4v;\0")
+					   _T("DVD和蓝光媒体(*.vob;*.m2ts)\0*.vob;*.m2ts\0")
+					   _T("音频媒体(*.mp3; *.ogg; *.wma; *.amr; *.wav; *.aac; *.flac; *.mp2)\0*.mp3; *.ogg; *.wma; *.amr; *.wav; *.aac; *.flac; *.mp2\0")
+					   _T("所有文件(*.*)\0*.*\0\0"),GetHWND());
+				if(dlg.DoModal() == IDOK)
+				{
+					OnOpenFileClick(dlg.m_szFileName,true);
+				}
+			}
+		}
+	}
     __super::Notify(msg);
 }
 
@@ -184,7 +217,7 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
     //创建播放窗口
     Create(NULL, _T("JustPlayIt"), UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
     CenterWindow();
-    SetShadowVisible(true);
+    //SetShadowVisible(true);
     ShowWindow(true, true);
 
     m_vlc_player = libvlc_media_player_new(m_vlc_instance);
@@ -259,7 +292,7 @@ void CJPMainWindow::Play(const wchar_t* uri, EMediaType mediaType)
 			PlayHLSStream(uri);
 			break;
         default:
-            PlayLocalVideo(uri);
+            PlayNetVideo(uri);
             break;
     }
     ShowBottombar(false);
@@ -316,6 +349,10 @@ LRESULT CJPMainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			ShowTopBar(false);
 		}
 	}
+	if(uMsg == WM_CMD_PLAYEND)
+	{
+		OnPlayEnd(m_uri.c_str());
+	}
     return __super::HandleMessage(uMsg, wParam, lParam);
 }
 
@@ -331,6 +368,13 @@ LRESULT CJPMainWindow::MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, b
 		   }
 		   return 1L;
         }
+		else if(wParam == VK_RETURN)
+		{
+			if(m_editUri && !m_editUri->GetText().IsEmpty())
+			{
+				OnOpenFileClick(LPCTSTR(m_editUri->GetText()));
+			}
+		}
     }
     return __super::MessageHandler(uMsg, wParam, lParam, bHandled);
 }
@@ -480,23 +524,26 @@ RECT CJPMainWindow::GetBottomBarRect()
 
 LRESULT CJPMainWindow::OnNcHitTest( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
 {
-	if(!IsDoubleClick() && !m_bFullScreen)
+	if(m_playerActive)
 	{
-		POINT pt; pt.x = GET_X_LPARAM(lParam); pt.y = GET_Y_LPARAM(lParam);
-		::ScreenToClient(*this, &pt);
+		if(!IsDoubleClick() && !m_bFullScreen)
+		{
+			POINT pt; pt.x = GET_X_LPARAM(lParam); pt.y = GET_Y_LPARAM(lParam);
+			::ScreenToClient(*this, &pt);
 
-		RECT rcClient;
-		::GetClientRect(*this, &rcClient);
-		
-		RECT rcSizeBox = m_PaintManager.GetSizeBox();
-		if( pt.x >= rcClient.left + rcSizeBox.left && pt.x < rcClient.right - rcSizeBox.right \
-			&& pt.y >= rcClient.top + rcSizeBox.top && pt.y < rcClient.bottom - rcSizeBox.bottom ) {
-				return HTCAPTION;
+			RECT rcClient;
+			::GetClientRect(*this, &rcClient);
+
+			RECT rcSizeBox = m_PaintManager.GetSizeBox();
+			if( pt.x >= rcClient.left + rcSizeBox.left && pt.x < rcClient.right - rcSizeBox.right \
+				&& pt.y >= rcClient.top + rcSizeBox.top && pt.y < rcClient.bottom - rcSizeBox.bottom ) {
+					return HTCAPTION;
+			}
 		}
-	}
-	else
-	{
-		return HTCLIENT;
+		else
+		{
+			return HTCLIENT;
+		}
 	}
 	return __super::OnNcHitTest(uMsg,wParam,lParam,bHandled);
 }
@@ -569,6 +616,10 @@ void CJPMainWindow::PlayHLSStream( const wchar_t* uri )
 
 void CJPMainWindow::OnPlayBegin(const wchar_t* uri)
 {
+	if(m_vlc_player)
+	{
+		libvlc_media_player_set_hwnd(m_vlc_player, GetHWND());
+	}
 	//显示标题
 	if(m_topBar)
 	{
@@ -589,6 +640,7 @@ void CJPMainWindow::OnPlayBegin(const wchar_t* uri)
 		::SetWindowPos(GetHWND(),NULL,0,0,width,height,SWP_NOZORDER|SWP_NOMOVE);
 		CenterWindow();
 	}
+	m_playerActive = true;
 	//AdjustRatio();
 }
 
@@ -653,4 +705,55 @@ LRESULT CJPMainWindow::OnTimer( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 		KillTimer(GetHWND(), ID_TIMER_SHOW_BAR);
 	}
 	return __super::OnTimer(uMsg,wParam,lParam,bHandled);
+}
+
+LRESULT CJPMainWindow::OnCreate( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
+{
+	LRESULT result = __super::OnCreate(uMsg,wParam,lParam,bHandled);
+	if(!m_editUri)
+	{
+		m_editUri = static_cast<DuiLib::CRichEditUI*>(m_PaintManager.FindControl(UI_NAME_EDIT_URI));
+	}
+	if(!m_btnOpenFile)
+	{
+		m_btnOpenFile = static_cast<DuiLib::CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_OPENFILE));
+	}
+	return result;
+}
+
+void CJPMainWindow::OnPlayEnd( const wchar_t* uri )
+{
+	if(m_vlc_player)
+	{
+		libvlc_media_player_set_hwnd(m_vlc_player, NULL);
+	}
+	if(m_topBar)
+	{
+		m_topBar->SetTitle("");
+	}
+	m_playerActive = false;
+}
+
+void CJPMainWindow::OnOpenFileClick(const wchar_t* uri,bool bLocal)
+{
+	DuiLib::CDuiString strUri = uri;
+	if(!bLocal)
+	{
+		if(strUri.Find(L"m3u8") >= 0)
+		{
+			Play(LPCTSTR(strUri),EMediaType_HLS);
+		}
+		else if(strUri.Find(L"http://") >= 0)
+		{
+			Play(LPCTSTR(strUri),EMediaType_Url);
+		}
+		else
+		{
+			Play(LPCTSTR(strUri),EMediaType_Unknown);
+		}
+	}
+	else
+	{
+		Play(LPCTSTR(strUri),EMediaType_Local);
+	}
 }

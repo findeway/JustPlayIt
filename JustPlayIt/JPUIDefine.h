@@ -3,6 +3,10 @@
 #define JUSTPLAYIT_WINDOW_NAME  _T("{5E10ADBE-9B72-4684-AE43-F6C6CDA5BD94}")
 #define JUSTPLAYIT_BOTTOMBAR_NAME	_T("{CD1135B2-FE08-4d4f-BAB7-9AFFC521E996}")
 #define JUSTPLAYIT_TOPBAR_NAME		_T("{8CA0F3EC-8F13-425e-A29C-1C2CCB86096E}")
+
+//主窗口
+#define UI_NAME_EDIT_URI			_T("editUri")
+#define UI_NAME_BUTTON_OPENFILE		_T("btnOpenFile")
 //播放控制面板
 #define UI_NAME_BUTTON_MUTE			_T("btnVolume")
 #define UI_NAME_BUTTON_MUTE_ZERO	_T("btnVolumeZero")
@@ -24,3 +28,6 @@
 #define UI_NAME_BUTTON_VIDEONAME	_T("btnVideoName")
 #define UI_NAME_BUTTON_MAX			_T("btnMax")
 #define UI_NAME_BUTTON_RESTORE		_T("btnRestore")
+
+#define WM_VIDEO_DBCLICK			(WM_USER + 500)
+#define WM_CMD_PLAYEND				(WM_USER + 501)

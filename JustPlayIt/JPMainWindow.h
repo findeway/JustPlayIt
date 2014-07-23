@@ -73,8 +73,11 @@ protected:
 	RECT GetDesktopRect(bool bWorkArea);
 	virtual LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	void OnOpenFileClick(const wchar_t* uri,bool bLocal = false);
 
 	void OnPlayBegin(const wchar_t* uri);
+	void OnPlayEnd(const wchar_t* uri);
 	void AdjustRatio();	
 private:
 	libvlc_instance_t*				m_vlc_instance;
@@ -91,5 +94,8 @@ private:
 	HLSMetaData						m_hlsMetaData;
 	EMediaType						m_sourceType;
 	std::wstring					m_uri;
-	bool							m_bAutoShowBar;
+	bool							m_playerActive;
+
+	DuiLib::CRichEditUI*			m_editUri;
+	DuiLib::CButtonUI*				m_btnOpenFile;
 };

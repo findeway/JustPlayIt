@@ -54,6 +54,8 @@ bool CJPPlayerBottomBar::Resume()
 
 bool CJPPlayerBottomBar::Stop()
 {
+	Seek(0.0);
+	SetDuration(0);
 	SetUpdateProgress(false);
 	if(m_vlcplayer)
 	{
@@ -66,6 +68,10 @@ bool CJPPlayerBottomBar::Stop()
 		{
 			m_btnPause->SetVisible(false);
 		}
+	}
+	if(m_hParent && IsWindow(m_hParent))
+	{
+		::PostMessage(m_hParent,WM_CMD_PLAYEND,0,0);
 	}
 	return false;
 }
