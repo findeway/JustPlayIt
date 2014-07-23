@@ -37,6 +37,8 @@ public:
 
 	//设置视频物理时长,以秒为单位
 	bool SetDuration(int duration);
+	//设置鼠标穿透
+	void SetMouseTransparent(bool bTrans);
 protected:
 	//num:0-100
 	bool SetVolumn(int num);
@@ -56,6 +58,7 @@ protected:
 
 	virtual LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 private:
 	//控件
 	DuiLib::CButtonUI* m_btnPlay;

@@ -180,8 +180,8 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
     //创建播放窗口
     Create(NULL, _T("JustPlayIt"), UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
     CenterWindow();
-    ShowWindow(true, true);
     SetShadowVisible(true);
+    ShowWindow(true, true);
 
     m_vlc_player = libvlc_media_player_new(m_vlc_instance);
     if (m_vlc_player == NULL)
@@ -342,6 +342,7 @@ bool CJPMainWindow::ShowBottombar(bool bShow)
         {
             if (m_bottomBar->GetHWND() && IsWindow(m_bottomBar->GetHWND()))
             {
+				m_bottomBar->SetMouseTransparent(false);
                 DuiLib::CDuiRect bottomBarRect = GetBottomBarRect();
 				m_bottomBar->ShowWindow(bShow);
 				if (bShow)
@@ -407,6 +408,9 @@ LRESULT CJPMainWindow::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
         RECT wndRect = {0};
         ::GetWindowRect(GetHWND(), &wndRect);
         m_lastRect = wndRect;
+		//移动或改变大小时先隐藏playerbar
+		ShowBottombar(false);
+		ShowTopBar(false);
     }
     return __super::OnSize(uMsg, wParam, lParam, bHandled);
 }
@@ -455,9 +459,9 @@ RECT CJPMainWindow::GetBottomBarRect()
     RECT rectPlayer = {0};
     GetWindowRect(GetHWND(), &rectPlayer);
     RECT bottomBarRect = {0};
-    bottomBarRect.bottom = rectPlayer.bottom - 1;
+    bottomBarRect.bottom = rectPlayer.bottom;
     bottomBarRect.left = rectPlayer.left;
-    bottomBarRect.right = rectPlayer.right - 1;
+    bottomBarRect.right = rectPlayer.right;
 	bottomBarRect.top = bottomBarRect.bottom - 70;
     return bottomBarRect;
 }
@@ -621,7 +625,7 @@ LRESULT CJPMainWindow::OnTimer( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 		{
 			ShowBottombar(false);
 			ShowTopBar(false);
-			//::BringWindowToTop(GetHWND());			//修复一个bug,playerbar隐藏时会导致播放窗口的z-序发生变化
+			::BringWindowToTop(GetHWND());			//修复一个bug,playerbar隐藏时会导致播放窗口的z-序发生变化
 			KillTimer(GetHWND(), ID_TIMER_HIDE_BAR);
 		}
 	}

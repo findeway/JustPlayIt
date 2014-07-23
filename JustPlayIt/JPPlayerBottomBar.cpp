@@ -462,3 +462,39 @@ LRESULT CJPPlayerBottomBar::OnTimer( UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	}
 	return __super::OnTimer(uMsg,wParam,lParam,bHandled);
 }
+
+LRESULT CJPPlayerBottomBar::OnNcHitTest( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
+{
+	POINT pt;
+	pt.x = GET_X_LPARAM(lParam);
+	pt.y = GET_Y_LPARAM(lParam);
+	::ScreenToClient(*this, &pt);
+
+	RECT rcClient;
+	::GetClientRect(*this, &rcClient);
+
+	RECT rcSizeBox = m_PaintManager.GetSizeBox();
+	if (pt.y > rcClient.bottom - rcSizeBox.bottom)
+	{
+		SetMouseTransparent(true);
+		return __super::OnNcHitTest(uMsg,wParam,lParam,bHandled);
+	}
+	if (pt.x > rcClient.right - rcSizeBox.right)
+	{
+		SetMouseTransparent(true);
+		return __super::OnNcHitTest(uMsg,wParam,lParam,bHandled);
+	}
+	return __super::OnNcHitTest(uMsg,wParam,lParam,bHandled);
+}
+
+void CJPPlayerBottomBar::SetMouseTransparent( bool bTrans )
+{
+	if(bTrans)
+	{
+		::SetWindowLong(GetHWND(),GWL_EXSTYLE,GetWindowLong(GetHWND(),GWL_EXSTYLE) | WS_EX_TRANSPARENT);
+	}
+	else
+	{
+		::SetWindowLong(GetHWND(),GWL_EXSTYLE,GetWindowLong(GetHWND(),GWL_EXSTYLE) & (~WS_EX_TRANSPARENT));
+	}
+}
