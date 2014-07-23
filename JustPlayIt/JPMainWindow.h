@@ -72,6 +72,7 @@ protected:
 
 	RECT GetDesktopRect(bool bWorkArea);
 	virtual LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 
 	void OnPlayBegin(const wchar_t* uri);
 	void AdjustRatio();	

@@ -198,20 +198,6 @@ DuiLib::CDuiString CJPPlayerBottomBar::GetSkinFolder()
 
 LRESULT CJPPlayerBottomBar::HandleMessage( UINT uMsg, WPARAM wParam, LPARAM lParam )
 {
-	if(uMsg == WM_TIMER)
-	{
-		if(wParam == ID_TIMER_UPDATE_PROGRESS)
-		{
-			if(m_vlcplayer)
-			{
-				libvlc_state_t playerState = libvlc_media_player_get_state(m_vlcplayer);
-				if(playerState == libvlc_Playing)
-				{
-					UpdateProgress(true);
-				}
-			}
-		}
-	}
 	if(uMsg == WM_MOUSEMOVE)
 	{
 		UpdateHoverTime();
@@ -459,4 +445,20 @@ void CJPPlayerBottomBar::UpdateHoverTime()
 			m_slideProgress->SetToolTip(FormatTime(time).c_str());
 		}
 	}
+}
+
+LRESULT CJPPlayerBottomBar::OnTimer( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
+{
+	if(wParam == ID_TIMER_UPDATE_PROGRESS)
+	{
+		if(m_vlcplayer)
+		{
+			libvlc_state_t playerState = libvlc_media_player_get_state(m_vlcplayer);
+			if(playerState == libvlc_Playing)
+			{
+				UpdateProgress(true);
+			}
+		}
+	}
+	return __super::OnTimer(uMsg,wParam,lParam,bHandled);
 }

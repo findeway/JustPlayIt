@@ -55,6 +55,7 @@ protected:
 	std::wstring FormatTime(int time);
 
 	virtual LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 private:
 	//¿Ø¼þ
 	DuiLib::CButtonUI* m_btnPlay;

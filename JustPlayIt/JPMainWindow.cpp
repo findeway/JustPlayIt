@@ -297,44 +297,11 @@ void CJPMainWindow::PlayLocalVideo(const wchar_t* uri)
 
 LRESULT CJPMainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 {
-    if (uMsg == WM_TIMER)
-    {
-        if (wParam == ID_TIMER_HOOK_VLC)
-        {
-            if (IsWindow(GetHWND()))
-            {
-                EnumChildWindows(GetHWND(), EnumVlcWndProc, NULL);
-            }
-        }
-        else if (wParam == ID_TIMER_VIDEO_DBCLICK)
-        {
-            m_nDoubleClick = 0;
-            KillTimer(GetHWND(), ID_TIMER_VIDEO_DBCLICK);
-        }
-        else if (wParam == ID_TIMER_HIDE_BAR)
-        {
-			POINT curPt = {0};
-			::GetCursorPos(&curPt);
-			if(!PtInRect(&GetBottomBarRect(),curPt) && !PtInRect(&GetTopBarRect(),curPt))
-			{
-				ShowBottombar(false);
-				ShowTopBar(false);
-				::BringWindowToTop(GetHWND());			//修复一个bug,playerbar隐藏时会导致播放窗口的z-序发生变化
-				KillTimer(GetHWND(), ID_TIMER_HIDE_BAR);
-			}
-        }
-		else if(wParam == ID_TIMER_SHOW_BAR)
-		{
-			ShowBottombar(true);
-			ShowTopBar(true);
-			KillTimer(GetHWND(), ID_TIMER_SHOW_BAR);
-		}
-    }
     if (uMsg == WM_VIDEO_DBCLICK)
     {
         SetFullScreen(!m_bFullScreen);
     }
-	else if(uMsg == WM_WINDOWPOSCHANGED)
+	if(uMsg == WM_WINDOWPOSCHANGED)
 	{
 		POINT pt = {0};
 		::GetCursorPos(&pt);
@@ -376,10 +343,10 @@ bool CJPMainWindow::ShowBottombar(bool bShow)
             if (m_bottomBar->GetHWND() && IsWindow(m_bottomBar->GetHWND()))
             {
                 DuiLib::CDuiRect bottomBarRect = GetBottomBarRect();
-				::SetWindowPos(m_bottomBar->GetHWND(), NULL, bottomBarRect.left, bottomBarRect.top, bottomBarRect.GetWidth(), bottomBarRect.GetHeight(), SWP_NOZORDER|SWP_NOREDRAW);
 				m_bottomBar->ShowWindow(bShow);
 				if (bShow)
                 {
+					::SetWindowPos(m_bottomBar->GetHWND(), NULL, bottomBarRect.left, bottomBarRect.top, bottomBarRect.GetWidth(), bottomBarRect.GetHeight(), SWP_NOZORDER|SWP_NOREDRAW);
 					::SetTimer(GetHWND(), ID_TIMER_HIDE_BAR, DURATION_TIMER_HIDE_BAR, NULL);
                 }
                 return true;
@@ -528,10 +495,10 @@ bool CJPMainWindow::ShowTopBar( bool bShow )
 			if (m_topBar->GetHWND() && IsWindow(m_topBar->GetHWND()))
 			{
 				DuiLib::CDuiRect topBarRect = GetTopBarRect();
-				::SetWindowPos(m_topBar->GetHWND(), NULL, topBarRect.left, topBarRect.top, topBarRect.GetWidth(), topBarRect.GetHeight(), SWP_NOZORDER|SWP_NOREDRAW);
 				m_topBar->ShowWindow(bShow);
 				if (bShow)
 				{
+					::SetWindowPos(m_topBar->GetHWND(), NULL, topBarRect.left, topBarRect.top, topBarRect.GetWidth(), topBarRect.GetHeight(), SWP_NOZORDER|SWP_NOREDRAW);
 					::SetTimer(GetHWND(), ID_TIMER_HIDE_BAR, DURATION_TIMER_HIDE_BAR, NULL);
 				}
 				return true;
@@ -630,4 +597,39 @@ bool CJPMainWindow::SetTopMost( bool bTopMost )
 		}
 	}
 	return bTopMost;
+}
+
+LRESULT CJPMainWindow::OnTimer( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
+{
+	if (wParam == ID_TIMER_HOOK_VLC)
+	{
+		if (IsWindow(GetHWND()))
+		{
+			EnumChildWindows(GetHWND(), EnumVlcWndProc, NULL);
+		}
+	}
+	else if (wParam == ID_TIMER_VIDEO_DBCLICK)
+	{
+		m_nDoubleClick = 0;
+		KillTimer(GetHWND(), ID_TIMER_VIDEO_DBCLICK);
+	}
+	else if (wParam == ID_TIMER_HIDE_BAR)
+	{
+		POINT curPt = {0};
+		::GetCursorPos(&curPt);
+		if(!PtInRect(&GetBottomBarRect(),curPt) && !PtInRect(&GetTopBarRect(),curPt))
+		{
+			ShowBottombar(false);
+			ShowTopBar(false);
+			//::BringWindowToTop(GetHWND());			//修复一个bug,playerbar隐藏时会导致播放窗口的z-序发生变化
+			KillTimer(GetHWND(), ID_TIMER_HIDE_BAR);
+		}
+	}
+	else if(wParam == ID_TIMER_SHOW_BAR)
+	{
+		ShowBottombar(true);
+		ShowTopBar(true);
+		KillTimer(GetHWND(), ID_TIMER_SHOW_BAR);
+	}
+	return __super::OnTimer(uMsg,wParam,lParam,bHandled);
 }
