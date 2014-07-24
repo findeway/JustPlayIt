@@ -46,6 +46,9 @@ protected:
 	bool SetProgress(double num);
 	//设置当前时间
 	bool SetCurTime(int time);
+	
+	void VolumnUp();
+	void VolumnDown();
 
 	bool SetTopMost(bool bTopMost);
 	void SetUpdateProgress(bool bUpdate);
@@ -57,6 +60,7 @@ protected:
 	std::wstring FormatTime(int time);
 
 	virtual LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
+	virtual LRESULT OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnTimer(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT OnNcHitTest(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	virtual LRESULT MessageHandler(UINT uMsg, WPARAM wParam, LPARAM lParam, bool& bHandled);

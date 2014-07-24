@@ -97,6 +97,10 @@ bool CJPPlayerBottomBar::Pause()
 
 bool CJPPlayerBottomBar::Seek( double pos )
 {
+	if(pos < 0.0 || pos > 100.0)
+	{
+		return false;
+	}
 	if(m_vlcplayer)
 	{
 		double progress = pos/100.0;
@@ -118,17 +122,21 @@ bool CJPPlayerBottomBar::SetVolumn( int num )
 	{
 		libvlc_audio_set_volume(m_vlcplayer,num);
 	}
+	if(m_slideVolumn)
+	{
+		m_slideVolumn->SetValue(num);
+	}
 	return false;
 }
 
 void CJPPlayerBottomBar::FastForward()
 {
-
+	Seek(m_nCurPos + 1.0);
 }
 
 void CJPPlayerBottomBar::FastBackward()
 {
-
+	Seek(m_nCurPos - 1.0);
 }
 
 void CJPPlayerBottomBar::Notify( DuiLib::TNotifyUI& msg )
@@ -245,6 +253,7 @@ LRESULT CJPPlayerBottomBar::OnCreate( UINT uMsg, WPARAM wParam, LPARAM lParam, B
 	if(!m_slideVolumn)
 	{
 		m_slideVolumn = static_cast<CSliderUI*>(m_PaintManager.FindControl(UI_NAME_SLIDER_VOL));
+		m_nVolume = m_slideVolumn->GetValue();
 	}
 	if(!m_slideProgress)
 	{
@@ -274,6 +283,10 @@ void CJPPlayerBottomBar::Init( libvlc_media_player_t* player, HWND hParent )
 	m_vlcplayer = player;
 	m_hParent = hParent;
 	SetUpdateProgress(true);
+	::RegisterHotKey(GetHWND(),WM_HOTKEY_FORWARD,MOD_CONTROL|MOD_ALT,VK_RIGHT);
+	::RegisterHotKey(GetHWND(),WM_HOTKEY_BACKWARD,MOD_CONTROL|MOD_ALT,VK_LEFT);
+	::RegisterHotKey(GetHWND(),WM_HOTKEY_VOLUP,MOD_ALT,VK_UP);
+	::RegisterHotKey(GetHWND(),WM_HOTKEY_VOLDOWN,MOD_ALT,VK_DOWN);
 }
 
 bool CJPPlayerBottomBar::SetMute( bool bMute )
@@ -514,5 +527,45 @@ LRESULT CJPPlayerBottomBar::MessageHandler( UINT uMsg, WPARAM wParam, LPARAM lPa
 			return 1L;
 		}
 	}
+	if(uMsg == WM_HOTKEY)
+	{
+		if(wParam == WM_HOTKEY_BACKWARD)
+		{
+			FastBackward();
+		}
+		else if(wParam == WM_HOTKEY_FORWARD)
+		{
+			FastForward();
+		}
+		else if(wParam == WM_HOTKEY_VOLUP)
+		{
+			VolumnUp();
+		}
+		else if(wParam == WM_HOTKEY_VOLDOWN)
+		{
+			VolumnDown();
+		}
+	}
 	return __super::MessageHandler(uMsg, wParam, lParam, bHandled);
+}
+
+void CJPPlayerBottomBar::VolumnUp()
+{
+	m_nVolume += 10;
+	SetVolumn(m_nVolume);
+}
+
+void CJPPlayerBottomBar::VolumnDown()
+{
+	m_nVolume -= 10;
+	SetVolumn(m_nVolume);
+}
+
+LRESULT CJPPlayerBottomBar::OnClose( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
+{
+	::UnregisterHotKey(GetHWND(),WM_HOTKEY_VOLDOWN);
+	::UnregisterHotKey(GetHWND(),WM_HOTKEY_VOLUP);
+	::UnregisterHotKey(GetHWND(),WM_HOTKEY_FORWARD);
+	::UnregisterHotKey(GetHWND(),WM_HOTKEY_BACKWARD);
+	return __super::OnClose(uMsg,wParam,lParam,bHandled);
 }
