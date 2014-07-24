@@ -2,6 +2,8 @@
 
 #include "UIlib.h"
 #include <vlc/vlc.h>
+#include <boost/shared_ptr.hpp>
+#include <boost/thread.hpp>
 
 class CJPPlayerBottomBar:
 	public DuiLib::WindowImplBase
@@ -92,4 +94,6 @@ private:
 	double							m_nCurPos;		//0-100
 	HWND							m_hParent;
 	int								m_duration;
+
+	boost::shared_ptr<boost::thread>	m_stopThread;	//执行停止播放清理操作的线程
 };

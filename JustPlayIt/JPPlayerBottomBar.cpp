@@ -1,6 +1,7 @@
 #include "StdAfx.h"
 #include "JPPlayerBottomBar.h"
 #include "JPMainWindow.h"
+#include <boost/bind.hpp>
 
 using namespace DuiLib;
 
@@ -26,6 +27,7 @@ CJPPlayerBottomBar::CJPPlayerBottomBar(void)
 	m_nCurPos = 0;
 	m_nVolume = 50;
 	m_duration = 0;
+	m_stopThread.reset();
 }
 
 CJPPlayerBottomBar::~CJPPlayerBottomBar(void)
@@ -161,7 +163,14 @@ void CJPPlayerBottomBar::Notify( DuiLib::TNotifyUI& msg )
 		}
 		else if(msg.pSender->GetName() == UI_NAME_BUTTON_STOP)
 		{
-			Stop();
+			//stop是耗时操作改为异步执行
+			if(m_stopThread.get())
+			{
+				m_stopThread->interrupt();
+				
+			}
+			m_stopThread.reset(new boost::thread(boost::bind(&CJPPlayerBottomBar::Stop,this)));
+			m_stopThread->detach();
 		}
 		else if(msg.pSender->GetName() == UI_NAME_BUTTON_MUTE)
 		{
@@ -567,5 +576,10 @@ LRESULT CJPPlayerBottomBar::OnClose( UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	::UnregisterHotKey(GetHWND(),WM_HOTKEY_VOLUP);
 	::UnregisterHotKey(GetHWND(),WM_HOTKEY_FORWARD);
 	::UnregisterHotKey(GetHWND(),WM_HOTKEY_BACKWARD);
+	if(m_stopThread.get())
+	{
+		m_stopThread->interrupt();
+	}
+	m_stopThread.reset();
 	return __super::OnClose(uMsg,wParam,lParam,bHandled);
 }
