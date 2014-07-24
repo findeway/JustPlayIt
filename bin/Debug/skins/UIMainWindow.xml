@@ -1,21 +1,27 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
-<Window caption="0,0,0,30" size="800,600" sizebox="0,0,10,10" bktrans="false">
-	<Font name="宋体" size="13" bold="false" italic="false" />
-	<Font name="宋体" size="13" bold="true" italic="false" />
-	<VerticalLayout bkimage="file='icon/background-spotlight.jpg'" inset="30,5,30,5"  childpadding="10">
+<Window caption="0,0,0,30" size="800,600" sizebox="0,0,10,10" bktrans="true">
+	<VerticalLayout childpadding="10" bkimage="file='icon/background-spotlight.jpg' source='0,0,800,600'" bktrans="true" shadow="true" shadowimage="icon/shadow.png" shadowtopleft="0,0,5,3" shadowtopright="205,0,5,3" shadowbottomleft="0,136,5,7" shadowbottomright="205,136,5,7">
 		<HorizontalLayout>
-		</HorizontalLayout>
-		
-		<HorizontalLayout inset="10,0,10,0" height="40" childpadding="10">
 			<HorizontalLayout>
-				<RichEdit font="0" textcolor="#FF0D0D0D" align="center" text="" multiline="false" name="editUri" inset="10,10,10,10" disabledtextcolor="#FFA7A6AA" bkimage="file='Icon/textarea.png' source='0,0,452,110' corner='4,4,4,4'"/>
 			</HorizontalLayout>
-			<HorizontalLayout width="100" height="40" >
-				<Button font="1" bkimage="file='icon/open_file.png' source='0,0,100,40' corner='4,4,4,4'" name="btnOpenFile" align="center" />
+			<HorizontalLayout width="80" childpadding="15" height="30">
+				<Button name="btnWelcomeMin" padding="0,8,0,8" enable="true" width="14" height="14" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" normalimage="file='icon/btn_min.png'" hotimage="file='icon/btn_min_hover.png'" pushedimage="file='icon/btn_min_press.png'" />
+				<Button name="btnWelcomeMax"  padding="0,8,0,8" width="14" height="14" normalimage="file='Icon/btn_big.png'" hotimage="file='Icon/btn_big_hover.png'" pushedimage="file='Icon/btn_big_press.png'"/>
+				<Button name="btnWelcomeRestore"  padding="0,8,0,8" visible="false" width="14" height="14" normalimage="file='Icon/btn_restore.png'" hotimage="file='Icon/btn_restore_hover.png'" pushedimage="file='Icon/btn_restore_press.png'" />
+				<Button name="btnWelcomeClose" padding="0,9,0,9" enable="true" width="14" height="12" textcolor="#FFFFFFFF" disabledtextcolor="#FFEAEAEA" align="center" normalimage="file='icon/btn_close.png'" hotimage="file='icon/btn_close_hover.png'" pushedimage="file='icon/btn_close_press.png'" />
+			</HorizontalLayout>
+		</HorizontalLayout>
+		<HorizontalLayout inset="30,0,30,0" height="40">
+			<HorizontalLayout>
+				<RichEdit textcolor="#FF0D0D0D" rich="false" align="center" multiline="false" bkcolor="#FFFFFFFF" name="editUri" inset="10,12,10,12"/>
+			</HorizontalLayout>
+			<HorizontalLayout width="100" padding="15,0,0,0">
+				<Button bkimage="file='icon/open_file.png'" name="btnOpenFile" align="center" />
 			</HorizontalLayout>
 		</HorizontalLayout>
 		
 		<HorizontalLayout>
+			<Label name="labelPlayerError" height="30" textcolor="#FFFF0000" align="center" inset="10,5,10,5"/>
 		</HorizontalLayout>
 	</VerticalLayout>
 </Window>

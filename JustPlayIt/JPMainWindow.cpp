@@ -67,7 +67,7 @@ LRESULT CALLBACK HookProc(int nCode, WPARAM wParam, LPARAM lParam)
 			if (PtInRect(&mainRect, pt))
             {
 				//只有鼠标左键不是按下状态时才显示playerbar，防止移动窗口或者改变大小时闪烁playerbar
-				if(!GetAsyncKeyState(VK_LBUTTON))
+				if(!GetAsyncKeyState(VK_LBUTTON) && CJPMainWindow::Instance()->IsAutoShowBar())
 				{
 					//需要延迟显示，否则windowposchange时显示playerbar会导致卡顿
 					::SetTimer(hWnd,ID_TIMER_SHOW_BAR,DURATION_TIMER_SHOW_BAR,NULL);
@@ -86,20 +86,56 @@ BOOL CALLBACK EnumVlcWndProc(HWND hWnd, LPARAM lParam)
     GetClassName(hWnd, className, MAX_PATH);
     if (IsWindow(hWnd) && g_Hook == NULL)
     {
-        HWND hParent = GetParent(hWnd);
-        if (IsWindow(hParent))
-        {
-            ::KillTimer(hParent, ID_TIMER_HOOK_VLC);
-        }
-        GetWindowThreadProcessId(hWnd, &dwVlcThreadId);
-        if (dwVlcThreadId != 0)
-        {
-            //使用WH_MOUSE失败，改用全局HOOK WH_MOUSE_LL
-            g_Hook = SetWindowsHookEx(WH_MOUSE_LL, HookProc, GetModuleHandle(NULL), 0);
-        }
+        //使用WH_MOUSE失败，改用全局HOOK WH_MOUSE_LL
+        g_Hook = SetWindowsHookEx(WH_MOUSE_LL, HookProc, GetModuleHandle(NULL), 0);
+		HWND hParent = GetParent(hWnd);
+		if (IsWindow(hParent))
+		{
+			if(g_Hook != NULL)
+			{
+				::KillTimer(hParent, ID_TIMER_HOOK_VLC);
+			}
+		}
     }
     return TRUE;
 }
+
+void OnPlayingStart( const struct libvlc_event_t *pEvent, void *pUserData )
+{
+	CJPMainWindow* pMainWnd = (CJPMainWindow*)pUserData;
+	if(pMainWnd)
+	{
+		pMainWnd->OnPlayBegin();
+	}
+}
+
+void OnPlayingStop( const struct libvlc_event_t *pEvent, void *pUserData )
+{
+	CJPMainWindow* pMainWnd = (CJPMainWindow*)pUserData;
+	if(pMainWnd)
+	{
+		pMainWnd->OnPlayEnd(true);
+	}
+}
+
+void OnPlayingEnd( const struct libvlc_event_t *pEvent, void *pUserData )
+{
+	CJPMainWindow* pMainWnd = (CJPMainWindow*)pUserData;
+	if(pMainWnd)
+	{
+		pMainWnd->OnPlayEnd(false);
+	}
+}
+
+void OnPlayingError( const struct libvlc_event_t *pEvent, void *pUserData )
+{
+	CJPMainWindow* pMainWnd = (CJPMainWindow*)pUserData;
+	if(pMainWnd)
+	{
+		pMainWnd->OnPlayFailed();
+	}
+}
+
 
 CJPMainWindow::CJPMainWindow(void)
 {
@@ -107,6 +143,8 @@ CJPMainWindow::CJPMainWindow(void)
     m_vlc_player = NULL;
     m_vlc_media = NULL;
     m_vlc_log = NULL;
+	m_vlc_event_manager = NULL;
+
     m_bottomBar = NULL;
 	m_topBar = NULL;
     m_nDoubleClick = 0;
@@ -117,7 +155,15 @@ CJPMainWindow::CJPMainWindow(void)
 	m_editUri = NULL;
 	m_btnOpenFile = NULL;
 	m_playerActive = false;
-	InitPlayer();
+	m_bAutoShowBar = false;
+
+	m_btnWelcomeClose = NULL;
+	m_btnWelcomeMax = NULL;
+	m_btnWelcomeMin = NULL;
+	m_btnWelcomeRestore = NULL;
+	m_labelPlayerError = NULL;
+
+	//InitPlayer();
 }
 
 CJPMainWindow::~CJPMainWindow(void)
@@ -153,6 +199,22 @@ void CJPMainWindow::Notify(DuiLib::TNotifyUI& msg)
 					OnOpenFileClick(dlg.m_szFileName,true);
 				}
 			}
+		}
+		if(msg.pSender->GetName() == UI_NAME_BUTTON_WELCOMECLOSE)
+		{
+			OnCloseClick();
+		}
+		else if(msg.pSender->GetName() == UI_NAME_BUTTON_WELCOMEMIN)
+		{
+			OnMinClick();
+		}
+		else if(msg.pSender->GetName() == UI_NAME_BUTTON_WELCOMEMAX)
+		{
+			OnMaxClick();
+		}
+		else if(msg.pSender->GetName() == UI_NAME_BUTTON_WELCOMERESTORE)
+		{
+			OnRestoreClick();
 		}
 	}
     __super::Notify(msg);
@@ -213,20 +275,25 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
     }
     m_vlc_log = libvlc_log_open(m_vlc_instance);
     libvlc_log_close(m_vlc_log);
+	
+	m_vlc_player = libvlc_media_player_new(m_vlc_instance);
+	if (m_vlc_player == NULL)
+	{
+		return false;
+	}
+	
+	//注册播放底层回调
+	m_vlc_event_manager = libvlc_media_player_event_manager(m_vlc_player);
+	libvlc_event_attach(m_vlc_event_manager,libvlc_MediaPlayerPlaying,&OnPlayingStart,this);
+	libvlc_event_attach(m_vlc_event_manager,libvlc_MediaPlayerStopped,&OnPlayingStop,this);
+	libvlc_event_attach(m_vlc_event_manager,libvlc_MediaPlayerEndReached,&OnPlayingEnd,this);
+	libvlc_event_attach(m_vlc_event_manager,libvlc_MediaPlayerEncounteredError,&OnPlayingError,this);
 
     //创建播放窗口
     Create(NULL, _T("JustPlayIt"), UI_WNDSTYLE_FRAME & (~WS_VISIBLE), WS_EX_WINDOWEDGE);
-    CenterWindow();
-    //SetShadowVisible(true);
-    ShowWindow(true, true);
+    
 
-    m_vlc_player = libvlc_media_player_new(m_vlc_instance);
-    if (m_vlc_player == NULL)
-    {
-        return false;
-    }
-    libvlc_media_player_set_hwnd(m_vlc_player, GetHWND());
-
+   
     //创建bottombar
     if (m_bottomBar == NULL)
     {
@@ -256,6 +323,12 @@ bool CJPMainWindow::UnInitPlayer()
 	m_topBar->Close();
 	m_topBar = NULL;
     UnHookVlc();
+
+	//解注册播放器底层回调
+	libvlc_event_detach(m_vlc_event_manager,libvlc_MediaPlayerPlaying,&OnPlayingStart,this);
+	libvlc_event_detach(m_vlc_event_manager,libvlc_MediaPlayerStopped,&OnPlayingStop,this);
+	libvlc_event_detach(m_vlc_event_manager,libvlc_MediaPlayerEndReached,&OnPlayingEnd,this);
+
     if (m_vlc_player != NULL)
     {
         libvlc_media_player_stop(m_vlc_player);
@@ -278,29 +351,40 @@ bool CJPMainWindow::UnInitPlayer()
 
 void CJPMainWindow::Play(const wchar_t* uri, EMediaType mediaType)
 {
+	//清空错误提示
+	if(m_labelPlayerError)
+	{
+		m_labelPlayerError->SetText(L"");
+	}
+
 	m_uri = uri;
 	m_sourceType = mediaType;
-    switch (mediaType)
+	int status = -1;
+	switch (mediaType)
     {
-        case EMediaType_Url:
-            PlayNetVideo(uri);
+        case EMediaType_HttpStream:
+            status = PlayNetVideo(uri);
             break;
         case EMediaType_Local:
-            PlayLocalVideo(uri);
+            status = PlayLocalVideo(uri);
             break;
 		case EMediaType_HLS:
-			PlayHLSStream(uri);
+			status = PlayHLSStream(uri);
 			break;
         default:
-            PlayNetVideo(uri);
+            //未知的类型
+			status = PlayNetVideo(uri);
             break;
     }
     ShowBottombar(false);
 	ShowTopBar(false);
-	OnPlayBegin(uri);
+	if(status < 0)
+	{
+		OnPlayFailed();
+	}
 }
 
-void CJPMainWindow::PlayNetVideo(const wchar_t* uri)
+int CJPMainWindow::PlayNetVideo(const wchar_t* uri)
 {
     if (m_vlc_instance)
     {
@@ -308,17 +392,18 @@ void CJPMainWindow::PlayNetVideo(const wchar_t* uri)
     }
     else
     {
-        return;
+        return -1;
     }
     if (m_vlc_media != NULL)
     {
         libvlc_media_parse(m_vlc_media);
         libvlc_media_player_set_media(m_vlc_player, m_vlc_media);
-        libvlc_media_player_play(m_vlc_player);
+        return libvlc_media_player_play(m_vlc_player);
     }
+	return -1;
 }
 
-void CJPMainWindow::PlayLocalVideo(const wchar_t* uri)
+int CJPMainWindow::PlayLocalVideo(const wchar_t* uri)
 {
     if (uri != NULL && _waccess(uri, 0) == 0)
     {
@@ -327,9 +412,10 @@ void CJPMainWindow::PlayLocalVideo(const wchar_t* uri)
             m_vlc_media = libvlc_media_new_path(m_vlc_instance, W2Utf8(uri).c_str());
             libvlc_media_parse(m_vlc_media);
             libvlc_media_player_set_media(m_vlc_player, m_vlc_media);
-            libvlc_media_player_play(m_vlc_player);
+            return libvlc_media_player_play(m_vlc_player);
         }
     }
+	return -1;
 }
 
 LRESULT CJPMainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
@@ -349,10 +435,10 @@ LRESULT CJPMainWindow::HandleMessage(UINT uMsg, WPARAM wParam, LPARAM lParam)
 			ShowTopBar(false);
 		}
 	}
-	if(uMsg == WM_CMD_PLAYEND)
+	/*if(uMsg == WM_CMD_PLAYEND)
 	{
-		OnPlayEnd(m_uri.c_str());
-	}
+		OnPlayEnd();
+	}*/
     return __super::HandleMessage(uMsg, wParam, lParam);
 }
 
@@ -596,7 +682,7 @@ void CJPMainWindow::QuitApplication()
 	PostQuitMessage(0);
 }
 
-void CJPMainWindow::PlayHLSStream( const wchar_t* uri )
+int CJPMainWindow::PlayHLSStream( const wchar_t* uri )
 {
 	if (m_vlc_instance)
 	{
@@ -604,17 +690,18 @@ void CJPMainWindow::PlayHLSStream( const wchar_t* uri )
 	}
 	else
 	{
-		return;
+		return -1;
 	}
 	if (m_vlc_media != NULL)
 	{
 		libvlc_media_parse(m_vlc_media);
 		libvlc_media_player_set_media(m_vlc_player, m_vlc_media);
-		libvlc_media_player_play(m_vlc_player);
+		return libvlc_media_player_play(m_vlc_player);
 	}
+	return -1;
 }
 
-void CJPMainWindow::OnPlayBegin(const wchar_t* uri)
+void CJPMainWindow::OnPlayBegin()
 {
 	if(m_vlc_player)
 	{
@@ -628,7 +715,7 @@ void CJPMainWindow::OnPlayBegin(const wchar_t* uri)
 	//解析m3u8时长信息
 	if(m_sourceType == EMediaType_HLS)
 	{
-		m_hlsMetaData = CHLSMetaParser::Instance()->parseHLSStream(uri);
+		m_hlsMetaData = CHLSMetaParser::Instance()->parseHLSStream(m_uri.c_str());
 		m_bottomBar->SetDuration(m_hlsMetaData.duration);
 	}
 	//自适应宽度
@@ -640,8 +727,9 @@ void CJPMainWindow::OnPlayBegin(const wchar_t* uri)
 		::SetWindowPos(GetHWND(),NULL,0,0,width,height,SWP_NOZORDER|SWP_NOMOVE);
 		CenterWindow();
 	}
-	m_playerActive = true;
 	//AdjustRatio();
+	m_playerActive = true;
+	m_bAutoShowBar = true;
 }
 
 void CJPMainWindow::AdjustRatio()
@@ -718,20 +806,54 @@ LRESULT CJPMainWindow::OnCreate( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& 
 	{
 		m_btnOpenFile = static_cast<DuiLib::CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_OPENFILE));
 	}
+	if(!m_btnWelcomeClose)
+	{
+		m_btnWelcomeClose = static_cast<DuiLib::CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_WELCOMECLOSE));
+	}
+	if(!m_btnWelcomeMax)
+	{
+		m_btnWelcomeMax = static_cast<DuiLib::CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_WELCOMEMAX));
+	}
+	if(!m_btnWelcomeMin)
+	{
+		m_btnWelcomeMin = static_cast<DuiLib::CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_WELCOMEMIN));
+	}
+	if(!m_btnWelcomeRestore)
+	{
+		m_btnWelcomeRestore = static_cast<DuiLib::CButtonUI*>(m_PaintManager.FindControl(UI_NAME_BUTTON_WELCOMERESTORE));
+	}
+	if(!m_labelPlayerError)
+	{
+		m_labelPlayerError = static_cast<DuiLib::CLabelUI*>(m_PaintManager.FindControl(UI_NAME_LABEL_PLAYERROR));
+	}
+	CenterWindow();
+	ShowWindow(true,true);
 	return result;
 }
 
-void CJPMainWindow::OnPlayEnd( const wchar_t* uri )
+void CJPMainWindow::OnPlayEnd(bool bStop)
 {
-	if(m_vlc_player)
+	if(m_playerActive)
 	{
-		libvlc_media_player_set_hwnd(m_vlc_player, NULL);
+		//如果是自然停止需要调用playerbar的停止来执行清理操作
+		if(!bStop && m_bottomBar)
+		{
+			m_bottomBar->Stop();
+		}
+		if(m_vlc_player)
+		{
+			libvlc_media_player_set_hwnd(m_vlc_player, NULL);
+		}
+		if(m_topBar)
+		{
+			m_topBar->SetTitle("");
+		}
+		KillTimer(GetHWND(), ID_TIMER_HIDE_BAR);
+		ShowBottombar(false);
+		ShowTopBar(false);
+		m_playerActive = false;
+		m_bAutoShowBar = false;
 	}
-	if(m_topBar)
-	{
-		m_topBar->SetTitle("");
-	}
-	m_playerActive = false;
 }
 
 void CJPMainWindow::OnOpenFileClick(const wchar_t* uri,bool bLocal)
@@ -739,21 +861,85 @@ void CJPMainWindow::OnOpenFileClick(const wchar_t* uri,bool bLocal)
 	DuiLib::CDuiString strUri = uri;
 	if(!bLocal)
 	{
+		std::wstring netUri = LPCTSTR(strUri);
 		if(strUri.Find(L"m3u8") >= 0)
 		{
-			Play(LPCTSTR(strUri),EMediaType_HLS);
+			if(strUri.Find(L"http://") < 0)
+			{
+				netUri = L"http://";
+				netUri += LPCTSTR(strUri);
+			}
+			Play(netUri.c_str(),EMediaType_HLS);
 		}
 		else if(strUri.Find(L"http://") >= 0)
 		{
-			Play(LPCTSTR(strUri),EMediaType_Url);
+			Play(LPCTSTR(strUri),EMediaType_HttpStream);
 		}
 		else
 		{
-			Play(LPCTSTR(strUri),EMediaType_Unknown);
+			if(strUri.Find(L":\\") >= 0)
+			{
+				Play(LPCTSTR(strUri),EMediaType_Local);
+			}
+			else
+			{
+				netUri = L"http://";
+				netUri += LPCTSTR(strUri);
+				Play(LPCTSTR(strUri),EMediaType_HttpStream);
+			}
 		}
 	}
 	else
 	{
 		Play(LPCTSTR(strUri),EMediaType_Local);
+	}
+}
+
+bool CJPMainWindow::IsAutoShowBar()
+{
+	return m_bAutoShowBar;
+}
+
+void CJPMainWindow::OnCloseClick()
+{
+	QuitApplication();
+}
+
+void CJPMainWindow::OnMinClick()
+{
+	::ShowWindow(GetHWND(),SW_MINIMIZE);
+}
+
+void CJPMainWindow::OnMaxClick()
+{
+	::ShowWindow(GetHWND(),SW_MAXIMIZE);
+	if(m_btnWelcomeRestore)
+	{
+		m_btnWelcomeRestore->SetVisible(true);
+	}
+	if(m_btnWelcomeMax)
+	{
+		m_btnWelcomeMax->SetVisible(false);
+	}
+}
+
+void CJPMainWindow::OnRestoreClick()
+{
+	::ShowWindow(GetHWND(),SW_RESTORE);
+	if(m_btnWelcomeRestore)
+	{
+		m_btnWelcomeRestore->SetVisible(false);
+	}
+	if(m_btnWelcomeMax)
+	{
+		m_btnWelcomeMax->SetVisible(true);
+	}
+}
+
+void CJPMainWindow::OnPlayFailed()
+{
+	if(m_labelPlayerError)
+	{
+		m_labelPlayerError->SetText(L"播放媒体失败");
 	}
 }

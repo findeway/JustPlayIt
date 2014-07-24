@@ -54,7 +54,7 @@ bool CJPPlayerBottomBar::Resume()
 	return false;
 }
 
-bool CJPPlayerBottomBar::Stop()
+bool CJPPlayerBottomBar::InnerStop()
 {
 	Seek(0.0);
 	SetDuration(0);
@@ -163,14 +163,7 @@ void CJPPlayerBottomBar::Notify( DuiLib::TNotifyUI& msg )
 		}
 		else if(msg.pSender->GetName() == UI_NAME_BUTTON_STOP)
 		{
-			//stop是耗时操作改为异步执行
-			if(m_stopThread.get())
-			{
-				m_stopThread->interrupt();
-				
-			}
-			m_stopThread.reset(new boost::thread(boost::bind(&CJPPlayerBottomBar::Stop,this)));
-			m_stopThread->detach();
+			Stop();
 		}
 		else if(msg.pSender->GetName() == UI_NAME_BUTTON_MUTE)
 		{
@@ -582,4 +575,17 @@ LRESULT CJPPlayerBottomBar::OnClose( UINT uMsg, WPARAM wParam, LPARAM lParam, BO
 	}
 	m_stopThread.reset();
 	return __super::OnClose(uMsg,wParam,lParam,bHandled);
+}
+
+bool CJPPlayerBottomBar::Stop()
+{
+	//stop是耗时操作改为异步执行
+	if(m_stopThread.get())
+	{
+		m_stopThread->interrupt();
+
+	}
+	m_stopThread.reset(new boost::thread(boost::bind(&CJPPlayerBottomBar::InnerStop,this)));
+	m_stopThread->detach();
+	return true;
 }

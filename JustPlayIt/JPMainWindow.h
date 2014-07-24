@@ -11,7 +11,7 @@ enum EMediaType
 {
 	EMediaType_Unknown = -1,
 	EMediaType_Local = 0,
-	EMediaType_Url,
+	EMediaType_HttpStream,
 	EMediaType_HLS
 };
 
@@ -65,10 +65,22 @@ public:
 
 	void QuitApplication();
 	bool SetTopMost(bool bTopMost);
+	bool IsAutoShowBar();
+
+	//播放开始通知
+	void OnPlayBegin();
+	/*
+	 *	bStop为true代表手动停止，否则代表播放完毕
+	 */
+	void OnPlayEnd(bool bStop);
+	void OnPlayFailed();
 protected:
-	void PlayNetVideo(const wchar_t* uri);
-	void PlayLocalVideo(const wchar_t* uri);
-	void PlayHLSStream(const wchar_t* uri);
+	/*
+	 *	return 0 if playback started (and was already started), or -1 on error
+	 */
+	int PlayNetVideo(const wchar_t* uri);
+	int PlayLocalVideo(const wchar_t* uri);
+	int PlayHLSStream(const wchar_t* uri);
 
 	RECT GetDesktopRect(bool bWorkArea);
 	virtual LRESULT OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
@@ -76,14 +88,18 @@ protected:
 	virtual LRESULT OnCreate(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled);
 	void OnOpenFileClick(const wchar_t* uri,bool bLocal = false);
 
-	void OnPlayBegin(const wchar_t* uri);
-	void OnPlayEnd(const wchar_t* uri);
 	void AdjustRatio();	
+
+	void OnCloseClick();
+	void OnMinClick();
+	void OnMaxClick();
+	void OnRestoreClick();
 private:
 	libvlc_instance_t*				m_vlc_instance;
 	libvlc_media_player_t*			m_vlc_player;
 	libvlc_media_t*					m_vlc_media;
 	libvlc_log_t*					m_vlc_log;
+	libvlc_event_manager_t*			m_vlc_event_manager;
 
 	CJPPlayerBottomBar*				m_bottomBar;
 	CJPPlayerTopBar*				m_topBar;
@@ -95,7 +111,14 @@ private:
 	EMediaType						m_sourceType;
 	std::wstring					m_uri;
 	bool							m_playerActive;
+	bool							m_bAutoShowBar;
 
+	//Welcome Scene
 	DuiLib::CRichEditUI*			m_editUri;
 	DuiLib::CButtonUI*				m_btnOpenFile;
+	DuiLib::CButtonUI*				m_btnWelcomeMin;
+	DuiLib::CButtonUI*				m_btnWelcomeMax;
+	DuiLib::CButtonUI*				m_btnWelcomeClose;
+	DuiLib::CButtonUI*				m_btnWelcomeRestore;
+	DuiLib::CLabelUI*				m_labelPlayerError;
 };

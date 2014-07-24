@@ -5,8 +5,15 @@
 #define JUSTPLAYIT_TOPBAR_NAME		_T("{8CA0F3EC-8F13-425e-A29C-1C2CCB86096E}")
 
 //主窗口
-#define UI_NAME_EDIT_URI			_T("editUri")
-#define UI_NAME_BUTTON_OPENFILE		_T("btnOpenFile")
+//Welcome 窗口
+#define UI_NAME_EDIT_URI					_T("editUri")
+#define UI_NAME_BUTTON_OPENFILE				_T("btnOpenFile")
+#define UI_NAME_BUTTON_WELCOMEMIN			_T("btnWelcomeMin")
+#define UI_NAME_BUTTON_WELCOMECLOSE			_T("btnWelcomeClose")
+#define UI_NAME_BUTTON_WELCOMEMAX			_T("btnWelcomeMax")
+#define UI_NAME_BUTTON_WELCOMERESTORE		_T("btnWelcomeRestore")
+#define UI_NAME_LABEL_PLAYERROR				_T("labelPlayerError")
+
 //播放控制面板
 #define UI_NAME_BUTTON_MUTE			_T("btnVolume")
 #define UI_NAME_BUTTON_MUTE_ZERO	_T("btnVolumeZero")
@@ -31,3 +38,7 @@
 
 #define WM_VIDEO_DBCLICK			(WM_USER + 500)
 #define WM_CMD_PLAYEND				(WM_USER + 501)
+#define WM_HOTKEY_FORWARD			(WM_USER + 502)
+#define WM_HOTKEY_BACKWARD			(WM_USER + 503)
+#define WM_HOTKEY_VOLUP				(WM_USER + 504)
+#define WM_HOTKEY_VOLDOWN			(WM_USER + 505)

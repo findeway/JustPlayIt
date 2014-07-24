@@ -42,6 +42,8 @@ public:
 	//…Ë÷√ Û±Í¥©Õ∏
 	void SetMouseTransparent(bool bTrans);
 protected:
+	bool InnerStop();
+	
 	//num:0-100
 	bool SetVolumn(int num);
 	//num:0-100
