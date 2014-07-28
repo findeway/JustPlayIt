@@ -49,7 +49,7 @@
 			<Tool
 				Name="VCCLCompilerTool"
 				Optimization="0"
-				AdditionalIncludeDirectories="&quot;..\..\third\google-breakpad\src&quot;;../../third/wtl81_9127/Include;..\..\Lightening\third\duilib;..\..\third\boost_1_42_0;..\..\third\boost_1_42_0\boost;..\..\third\atlserver;..\common;..\include;..\common\rapidxml"
+				AdditionalIncludeDirectories="..\third\libcurl\include;&quot;..\..\third\google-breakpad\src&quot;;../../third/wtl81_9127/Include;..\..\Lightening_letv\third\duilib;..\..\third\boost_1_42_0;..\..\third\boost_1_42_0\boost;..\..\third\atlserver;..\common;..\include;..\common\rapidxml"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;_DEBUG"
 				MinimalRebuild="true"
 				BasicRuntimeChecks="3"
@@ -72,10 +72,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="json_libmtd.lib"
+				AdditionalDependencies="json_libmtd.lib  curllib.lib"
 				OutputFile="..\bin\$(ConfigurationName)\$(ProjectName).exe"
 				LinkIncremental="2"
-				AdditionalLibraryDirectories="..\..\third\boost_1_42_0\stage\lib;..\lib\debug"
+				AdditionalLibraryDirectories="..\third\libcurl\lib\debug;..\..\third\boost_1_42_0\stage\lib;..\lib\debug"
 				GenerateDebugInformation="true"
 				SubSystem="2"
 				TargetMachine="1"
@@ -136,7 +136,7 @@
 			/>
 			<Tool
 				Name="VCCLCompilerTool"
-				AdditionalIncludeDirectories="&quot;..\..\third\google-breakpad\src&quot;;../../third/wtl81_9127/Include;..\..\Lightening\third\duilib;..\..\third\boost_1_42_0;..\..\third\boost_1_42_0\boost;..\..\third\atlserver;..\common;..\include;..\common\rapidxml"
+				AdditionalIncludeDirectories="..\third\libcurl\include;&quot;..\..\third\google-breakpad\src&quot;;../../third/wtl81_9127/Include;..\..\Lightening_letv\third\duilib;..\..\third\boost_1_42_0;..\..\third\boost_1_42_0\boost;..\..\third\atlserver;..\common;..\include;..\common\rapidxml"
 				PreprocessorDefinitions="WIN32;_WINDOWS;STRICT;NDEBUG"
 				ExceptionHandling="0"
 				RuntimeLibrary="0"
@@ -158,10 +158,10 @@
 			/>
 			<Tool
 				Name="VCLinkerTool"
-				AdditionalDependencies="json_libmt.lib exception_handler.lib"
+				AdditionalDependencies="json_libmt.lib exception_handler.lib curllib.lib"
 				OutputFile="..\bin\$(ConfigurationName)\$(ProjectName).exe"
 				LinkIncremental="1"
-				AdditionalLibraryDirectories="..\..\third\boost_1_42_0\stage\lib;..\lib\release"
+				AdditionalLibraryDirectories="..\third\libcurl\lib\release;..\..\third\boost_1_42_0\stage\lib;..\lib\release"
 				SubSystem="2"
 				TargetMachine="1"
 			/>

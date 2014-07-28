@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8" standalone="yes" ?>
 <Window caption="0,0,0,30" size="800,600" sizebox="0,0,10,10" bktrans="true">
-	<VerticalLayout childpadding="10" bkimage="file='icon/background-spotlight.jpg' source='0,0,800,600'" bktrans="true" shadow="true" shadowimage="icon/shadow.png" shadowtopleft="0,0,5,3" shadowtopright="205,0,5,3" shadowbottomleft="0,136,5,7" shadowbottomright="205,136,5,7">
+	<VerticalLayout childpadding="10" bkimage="file='icon/background-spotlight.jpg' source='0,0,800,600'" bktrans="true">
 		<HorizontalLayout>
 			<HorizontalLayout>
 			</HorizontalLayout>

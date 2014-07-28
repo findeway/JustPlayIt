@@ -1,9 +1,9 @@
 #include "StdAfx.h"
 #include "HLSMetaParser.h"
-#include "SyncHttpClient.h"
+#include "AsyncHttpClient.h"
 #include "Util.h"
 
-CHLSMetaParser::CHLSMetaParser(void)
+CHLSMetaParser::CHLSMetaParser(void):m_callback(NULL),m_callbackUserdata(NULL)
 {
 }
 
@@ -11,10 +11,12 @@ CHLSMetaParser::~CHLSMetaParser(void)
 {
 }
 
-HLSMetaData CHLSMetaParser::parseHLSStream( const wchar_t* m3u8_address )
+void CHLSMetaParser::parseHLSStream( const wchar_t* m3u8_address,OnGetHlsMeta callback,void* userdata )
 {
-	std::string response = CSyncHttpClient::Instance()->GetHttpResponse(m3u8_address);
-	return parseHLSMeta(response);
+	m_callbackUserdata = userdata;
+	m_callback = callback;
+	CAsyncHttpClient* pClient = new CAsyncHttpClient();
+	pClient->Request(m3u8_address,EHttp_Get,CHLSMetaParser::OnResponse,this);
 }
 
 HLSMetaData CHLSMetaParser::parseHLSMeta( std::string response )
@@ -42,4 +44,17 @@ HLSMetaData CHLSMetaParser::parseHLSMeta( std::string response )
 		}
 	}
 	return metadata;
+}
+
+void CHLSMetaParser::OnResponse( unsigned int statusCode,unsigned int errCode,const std::string& response,void* userdata )
+{
+	CHLSMetaParser* pThis = (CHLSMetaParser*)userdata;
+	if(pThis)
+	{
+		HLSMetaData metaData = pThis->parseHLSMeta(response);
+		if(pThis->m_callback)
+		{
+			pThis->m_callback(metaData,pThis->m_callbackUserdata);
+		}
+	}
 }

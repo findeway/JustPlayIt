@@ -577,13 +577,9 @@ bool CJPMainWindow::IsBottomBarVisible()
     return false;
 }
 
-HWND CJPMainWindow::GetBottomBar()
+CJPPlayerBottomBar* CJPMainWindow::GetBottomBar()
 {
-    if (m_bottomBar)
-    {
-        return m_bottomBar->GetHWND();
-    }
-    return NULL;
+	return m_bottomBar;
 }
 
 LRESULT CJPMainWindow::OnClose(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled)
@@ -715,8 +711,7 @@ void CJPMainWindow::OnPlayBegin()
 	//解析m3u8时长信息
 	if(m_sourceType == EMediaType_HLS)
 	{
-		m_hlsMetaData = CHLSMetaParser::Instance()->parseHLSStream(m_uri.c_str());
-		m_bottomBar->SetDuration(m_hlsMetaData.duration);
+		CHLSMetaParser::Instance()->parseHLSStream(m_uri.c_str(),CJPMainWindow::OnGetM3u8Meta,this);
 	}
 	//自适应宽度
 	int height = libvlc_video_get_height(m_vlc_player);
@@ -797,6 +792,7 @@ LRESULT CJPMainWindow::OnTimer( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& b
 
 LRESULT CJPMainWindow::OnCreate( UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHandled )
 {
+	SetShadowVisible(true);
 	LRESULT result = __super::OnCreate(uMsg,wParam,lParam,bHandled);
 	if(!m_editUri)
 	{
@@ -941,5 +937,14 @@ void CJPMainWindow::OnPlayFailed()
 	if(m_labelPlayerError)
 	{
 		m_labelPlayerError->SetText(L"播放媒体失败");
+	}
+}
+
+void CJPMainWindow::OnGetM3u8Meta( const HLSMetaData& metaData,void* userdata )
+{
+	CJPMainWindow* pMainWindow = (CJPMainWindow*)userdata;
+	if(pMainWindow && pMainWindow->GetBottomBar())
+	{
+		pMainWindow->GetBottomBar()->SetDuration(metaData.duration);
 	}
 }

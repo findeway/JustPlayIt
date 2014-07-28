@@ -59,7 +59,7 @@ public:
 	bool SetFullScreen(bool bFullScreen);
 
 	bool IsBottomBarVisible();
-	HWND GetBottomBar();
+	CJPPlayerBottomBar* GetBottomBar();
 	RECT GetBottomBarRect();
 	RECT GetTopBarRect();
 
@@ -94,6 +94,9 @@ protected:
 	void OnMinClick();
 	void OnMaxClick();
 	void OnRestoreClick();
+
+	//解析m3u8元数据
+	static void OnGetM3u8Meta(const HLSMetaData& metaData,void* userdata);
 private:
 	libvlc_instance_t*				m_vlc_instance;
 	libvlc_media_player_t*			m_vlc_player;
@@ -107,7 +110,6 @@ private:
 	LONG_PTR						m_oldStyle;
 	int								m_nDoubleClick;		//0为清空状态，2表示双击
 	RECT							m_lastRect;
-	HLSMetaData						m_hlsMetaData;
 	EMediaType						m_sourceType;
 	std::wstring					m_uri;
 	bool							m_playerActive;
