@@ -3,6 +3,8 @@
 #include "SingletonImpl.h"
 #include <string>
 #include <vector>
+#include <boost/shared_ptr.hpp>
+#include "AsyncHttpClient.h"
 
 typedef struct tagM3U8Segment
 {
@@ -29,7 +31,10 @@ public:
 	HLSMetaData parseHLSMeta(std::string response);
 
 	static void OnResponse(unsigned int statusCode,unsigned int errCode,const std::string& response,void* userdata);
-public:
+	void OnResponseCallback(const HLSMetaData& metaData);
+protected:
 	OnGetHlsMeta		m_callback;
 	void*				m_callbackUserdata;
+protected:
+	boost::shared_ptr<CAsyncHttpClient>	m_pClient;
 };
