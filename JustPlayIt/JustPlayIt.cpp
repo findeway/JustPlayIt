@@ -29,6 +29,12 @@ int WINAPI _tWinMain(HINSTANCE hInstance, HINSTANCE /*hPrevInstance*/, LPTSTR lp
 	
 	CCommandLineProcessor::Instance()->Process(lpstrCmdLine);
 	DuiLib::CPaintManagerUI::SetInstance(hInstance);
+	TCHAR szDir[MAX_PATH] = {0};
+	::GetModuleFileName(GetModuleHandle(NULL),szDir,MAX_PATH);
+	::PathRemoveFileSpec(szDir);
+	std::wstring strSkinPath = szDir;
+	strSkinPath += L"\\skins.ui";
+	DuiLib::CPaintManagerUI::SetResourceZip(strSkinPath.c_str(),true);
 	CJPMainWindow::Instance()->InitPlayer();
 	//CJPMainWindow::Instance()->Play(L"E:\\downloadvide\\ÎÞ¼äµÀ3.mp4",EMediaType_Local);
 	//CJPMainWindow::Instance()->Play(L"http://pl.youku.com/playlist/m3u8?vid=184451263&type=hd2&ts=1404889662&keyframe=0&ep=cyaUHkGFX8gG5yPcjD8bYC%2fncXYGXP8C8huAgNBkA9QtSeC4&sid=140488966203412735519&token=9187&ev=1&oip=1008511208&ctype=12",EMediaType_HLS);

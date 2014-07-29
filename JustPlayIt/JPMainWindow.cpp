@@ -238,6 +238,7 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
         "-I",
         "dummy",
         "--verbose=2",
+		"--extraintf=logger"
     };
     char** userVlcArgs = NULL;
     if (argv != NULL && argc > 0)
@@ -254,7 +255,7 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
         }
     }
 
-    int nVlcArgs = 3;
+    int nVlcArgs = 4;
     if (argv == NULL || argc <= 0)
     {
         if (!m_vlc_instance)
@@ -273,8 +274,6 @@ bool CJPMainWindow::InitPlayer(const wchar_t* argv[] /*= NULL*/, int argc /*= 0*
     {
         return false;
     }
-    m_vlc_log = libvlc_log_open(m_vlc_instance);
-    libvlc_log_close(m_vlc_log);
 	
 	m_vlc_player = libvlc_media_player_new(m_vlc_instance);
 	if (m_vlc_player == NULL)
@@ -547,8 +546,8 @@ LRESULT CJPMainWindow::OnSize(UINT uMsg, WPARAM wParam, LPARAM lParam, BOOL& bHa
         ::GetWindowRect(GetHWND(), &wndRect);
         m_lastRect = wndRect;
 		//移动或改变大小时先隐藏playerbar
-		ShowBottombar(false);
-		ShowTopBar(false);
+		//ShowBottombar(false);
+		//ShowTopBar(false);
     }
     return __super::OnSize(uMsg, wParam, lParam, bHandled);
 }
@@ -699,6 +698,8 @@ int CJPMainWindow::PlayHLSStream( const wchar_t* uri )
 
 void CJPMainWindow::OnPlayBegin()
 {
+	//停止后重新播放hook会失效，具体原因不明
+	SetupVlcHook();
 	if(m_vlc_player)
 	{
 		libvlc_media_player_set_hwnd(m_vlc_player, GetHWND());
